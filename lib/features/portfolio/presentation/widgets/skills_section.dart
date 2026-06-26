@@ -104,13 +104,40 @@ class _SkillsSectionState extends State<SkillsSection> {
             ),
             const SizedBox(height: 32),
 
-            // Skills Grid
-            Wrap(
-              spacing: 12,
-              runSpacing: 12,
-              children: _filteredSkills.map((skill) {
-                return HoverSkillChip(skill: skill);
-              }).toList(),
+            // Skills Grid with smooth height and cross-fade/slide transitions
+            AnimatedSize(
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeInOutCubic,
+              alignment: Alignment.topLeft,
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                switchInCurve: Curves.easeOutCubic,
+                switchOutCurve: Curves.easeInCubic,
+                transitionBuilder: (Widget child, Animation<double> animation) {
+                  return FadeTransition(
+                    opacity: animation,
+                    child: SlideTransition(
+                      position: Tween<Offset>(
+                        begin: const Offset(0.0, 0.08),
+                        end: Offset.zero,
+                      ).animate(animation),
+                      child: child,
+                    ),
+                  );
+                },
+                child: Container(
+                  key: ValueKey<int>(_activeCategoryIndex),
+                  width: double.infinity,
+                  alignment: Alignment.topLeft,
+                  child: Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    children: _filteredSkills.map((skill) {
+                      return HoverSkillChip(skill: skill);
+                    }).toList(),
+                  ),
+                ),
+              ),
             ),
           ],
         ),

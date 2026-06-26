@@ -29,21 +29,34 @@ class ProjectsSection extends StatelessWidget {
 
             // Project Grid Layout
             Responsive(
-              desktop: GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 24,
-                  mainAxisSpacing: 24,
-                  childAspectRatio: 1.15,
-                ),
-                itemCount: nareshPortfolioData.projects.length,
-                itemBuilder: (context, index) {
-                  return ProjectCard(
-                    project: nareshPortfolioData.projects[index],
-                  );
-                },
+              desktop: Column(
+                children: () {
+                  final List<Widget> rows = [];
+                  final projects = nareshPortfolioData.projects;
+                  for (var i = 0; i < projects.length; i += 2) {
+                    final hasNext = i + 1 < projects.length;
+                    rows.add(
+                      Padding(
+                        padding: EdgeInsets.only(
+                          bottom: i + 2 < projects.length ? 24.0 : 0.0,
+                        ),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(child: ProjectCard(project: projects[i])),
+                            const SizedBox(width: 24),
+                            Expanded(
+                              child: hasNext
+                                  ? ProjectCard(project: projects[i + 1])
+                                  : const SizedBox.shrink(),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }
+                  return rows;
+                }(),
               ),
               mobile: Column(
                 children: nareshPortfolioData.projects.map((project) {
@@ -137,7 +150,8 @@ class _ProjectCardState extends State<ProjectCard> {
         ),
         child: Card(
           margin: EdgeInsets.zero,
-          child: Padding(
+          child: Container(
+            height: Responsive.isDesktop(context) ? 580 : null,
             padding: const EdgeInsets.all(24.0),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -193,41 +207,40 @@ class _ProjectCardState extends State<ProjectCard> {
                 const SizedBox(height: 16),
 
                 // Bullet points
-                Expanded(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: widget.project.bulletPoints.length,
-                    itemBuilder: (context, idx) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 6.0),
-                        child: Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              "▸",
-                              style: TextStyle(
-                                color: theme.primaryColor,
-                                fontSize: 14,
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: widget.project.bulletPoints.map((bullet) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 6.0),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "▸",
+                            style: TextStyle(
+                              color: theme.primaryColor,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              bullet,
+                              style: theme.textTheme.bodyMedium?.copyWith(
+                                fontSize: 13,
+                                height: 1.4,
                               ),
                             ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                widget.project.bulletPoints[idx],
-                                style: theme.textTheme.bodyMedium?.copyWith(
-                                  fontSize: 13,
-                                  height: 1.4,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }).toList(),
                 ),
-                const SizedBox(height: 16),
+                if (Responsive.isDesktop(context))
+                  const Spacer()
+                else
+                  const SizedBox(height: 20),
 
                 // Technologies chips wrap
                 Wrap(
