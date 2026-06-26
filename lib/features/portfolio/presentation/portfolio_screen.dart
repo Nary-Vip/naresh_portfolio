@@ -20,7 +20,7 @@ class PortfolioScreen extends StatefulWidget {
 
 class _PortfolioScreenState extends State<PortfolioScreen> {
   final ScrollController _scrollController = ScrollController();
-  
+
   // Keys for section scrolling
   final GlobalKey _heroKey = GlobalKey();
   final GlobalKey _sandboxKey = GlobalKey();
@@ -59,9 +59,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
         children: [
           // Background subtle gradients
           Positioned.fill(
-            child: Container(
-              color: theme.scaffoldBackgroundColor,
-            ),
+            child: Container(color: theme.scaffoldBackgroundColor),
           ),
           // Subtle glow decorations (dark mode orange blurs)
           if (isDark) ...[
@@ -73,7 +71,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                 height: 400,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: theme.primaryColor.withOpacity(0.08),
+                  color: theme.primaryColor.withValues(alpha: 0.08),
                 ),
               ),
             ),
@@ -85,12 +83,12 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                 height: 500,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: theme.primaryColor.withOpacity(0.05),
+                  color: theme.primaryColor.withValues(alpha: 0.05),
                 ),
               ),
             ),
           ],
-          
+
           // Main Scrollable Area
           SelectionArea(
             child: SingleChildScrollView(
@@ -99,44 +97,47 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                 children: [
                   // Space for the floating navbar
                   const SizedBox(height: 100),
-                  
+
                   // Hero Section
-                  HeroSection(key: _heroKey, onContactClick: () => _scrollToSection(_contactKey)),
-                  
+                  HeroSection(
+                    key: _heroKey,
+                    onContactClick: () => _scrollToSection(_contactKey),
+                  ),
+
                   // Divider
                   _buildDivider(),
 
                   // Sandbox Section
                   DevSandboxSection(key: _sandboxKey),
-                  
+
                   // Exploring Section
                   ExploringSection(),
-                  
+
                   _buildDivider(),
 
                   // Skills Section
                   SkillsSection(key: _skillsKey),
-                  
+
                   _buildDivider(),
 
                   // Experience Section
                   ExperienceSection(key: _experienceKey),
-                  
+
                   _buildDivider(),
 
                   // Projects Section
                   ProjectsSection(key: _projectsKey),
-                  
+
                   _buildDivider(),
 
                   // Education Section
                   const EducationSection(),
-                  
+
                   _buildDivider(),
 
                   // Certifications Section
                   CertificationsSection(key: _certificationsKey),
-                  
+
                   _buildDivider(),
 
                   // Contact Section

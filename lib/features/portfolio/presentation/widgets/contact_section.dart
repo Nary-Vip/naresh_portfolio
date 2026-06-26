@@ -60,7 +60,7 @@ class _ContactSectionState extends State<ContactSection> {
           // Show a success message dialog
           showDialog(
             context: context,
-            barrierColor: Colors.black.withOpacity(0.6),
+            barrierColor: Colors.black.withValues(alpha: 0.6),
             builder: (context) {
               return Dialog(
                 backgroundColor: Colors.transparent,
@@ -257,7 +257,7 @@ class _ContactSectionState extends State<ContactSection> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.primaryColor.withOpacity(0.1),
+                color: theme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(icon, color: theme.primaryColor, size: 24),
@@ -417,12 +417,12 @@ class _ContactSectionState extends State<ContactSection> {
                   width: 48,
                   child: Icon(
                     prefixIcon,
-                    color: theme.primaryColor.withOpacity(0.7),
+                    color: theme.primaryColor.withValues(alpha: 0.7),
                   ),
                 ),
               ],
             )
-          : Icon(prefixIcon, color: theme.primaryColor.withOpacity(0.7)),
+          : Icon(prefixIcon, color: theme.primaryColor.withValues(alpha: 0.7)),
       filled: true,
       fillColor: isDark ? const Color(0xFF0C0C0C) : Colors.grey.shade50,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -538,8 +538,8 @@ class _SuccessDialogState extends State<_SuccessDialog>
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: isDark
-                      ? theme.primaryColor.withOpacity(0.3)
-                      : theme.primaryColor.withOpacity(0.2),
+                      ? theme.primaryColor.withValues(alpha: 0.3)
+                      : theme.primaryColor.withValues(alpha: 0.2),
                   width: 1.5,
                 ),
                 gradient: LinearGradient(
@@ -547,17 +547,17 @@ class _SuccessDialogState extends State<_SuccessDialog>
                   end: Alignment.bottomRight,
                   colors: isDark
                       ? [
-                          const Color(0xFF1E1E1E).withOpacity(0.85),
-                          const Color(0xFF121212).withOpacity(0.95),
+                          const Color(0xFF1E1E1E).withValues(alpha: 0.85),
+                          const Color(0xFF121212).withValues(alpha: 0.95),
                         ]
                       : [
-                          Colors.white.withOpacity(0.95),
-                          Colors.white.withOpacity(0.98),
+                          Colors.white.withValues(alpha: 0.95),
+                          Colors.white.withValues(alpha: 0.98),
                         ],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: theme.primaryColor.withOpacity(0.15),
+                    color: theme.primaryColor.withValues(alpha: 0.15),
                     blurRadius: 30,
                     offset: const Offset(0, 10),
                   ),
@@ -582,8 +582,8 @@ class _SuccessDialogState extends State<_SuccessDialog>
                               height: 60,
                               decoration: BoxDecoration(
                                 shape: BoxShape.circle,
-                                color: theme.primaryColor.withOpacity(
-                                  _rippleOpacityAnimation.value * 0.3,
+                                color: theme.primaryColor.withValues(
+                                  alpha: _rippleOpacityAnimation.value * 0.3,
                                 ),
                               ),
                             ),
@@ -601,14 +601,16 @@ class _SuccessDialogState extends State<_SuccessDialog>
                             gradient: LinearGradient(
                               colors: [
                                 theme.primaryColor,
-                                theme.primaryColor.withOpacity(0.8),
+                                theme.primaryColor.withValues(alpha: 0.8),
                               ],
                               begin: Alignment.topLeft,
                               end: Alignment.bottomRight,
                             ),
                             boxShadow: [
                               BoxShadow(
-                                color: theme.primaryColor.withOpacity(0.4),
+                                color: theme.primaryColor.withValues(
+                                  alpha: 0.4,
+                                ),
                                 blurRadius: 15,
                                 offset: const Offset(0, 5),
                               ),
@@ -676,18 +678,22 @@ class _SuccessDialogState extends State<_SuccessDialog>
                                 gradient: LinearGradient(
                                   colors: _isHovered
                                       ? [
-                                          theme.primaryColor.withOpacity(0.9),
+                                          theme.primaryColor.withValues(
+                                            alpha: 0.9,
+                                          ),
                                           theme.primaryColor,
                                         ]
                                       : [
                                           theme.primaryColor,
-                                          theme.primaryColor.withOpacity(0.85),
+                                          theme.primaryColor.withValues(
+                                            alpha: 0.85,
+                                          ),
                                         ],
                                 ),
                                 boxShadow: [
                                   BoxShadow(
-                                    color: theme.primaryColor.withOpacity(
-                                      _isHovered ? 0.4 : 0.25,
+                                    color: theme.primaryColor.withValues(
+                                      alpha: _isHovered ? 0.4 : 0.25,
                                     ),
                                     blurRadius: _isHovered ? 15 : 10,
                                     offset: const Offset(0, 4),

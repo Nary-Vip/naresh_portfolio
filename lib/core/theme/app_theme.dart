@@ -5,14 +5,18 @@ class AppTheme {
   // Light Theme Colors
   static const Color lightBg = Color(0xFFF9FAFB);
   static const Color lightSurface = Colors.white;
-  static const Color lightPrimary = Color(0xFFF25C05); // High contrast warm orange
+  static const Color lightPrimary = Color(
+    0xFFF25C05,
+  ); // High contrast warm orange
   static const Color lightSecondary = Color(0xFF1E293B); // Slate-800
   static const Color lightText = Color(0xFF0F172A); // Slate-900
   static const Color lightTextMuted = Color(0xFF64748B); // Slate-500
 
   // Dark Theme Colors
   static const Color darkBg = Color(0xFF000000); // Pitch black
-  static const Color darkSurface = Color(0xFF111111); // Elevated deep charcoal card background
+  static const Color darkSurface = Color(
+    0xFF111111,
+  ); // Elevated deep charcoal card background
   static const Color darkPrimary = Color(0xFFFF6B00); // Neon orange
   static const Color darkSecondary = Color(0xFFE2E8F0); // Slate-200
   static const Color darkText = Color(0xFFF8FAFC); // Slate-50

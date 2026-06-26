@@ -13,7 +13,10 @@ class _SkillsSectionState extends State<SkillsSection> {
   int _activeCategoryIndex = 0; // 0: All, 1: Mobile, 2: Web, 3: Tools
 
   List<String> get _categories {
-    return ["All Skills", ...nareshPortfolioData.skills.map((c) => c.categoryName)];
+    return [
+      "All Skills",
+      ...nareshPortfolioData.skills.map((c) => c.categoryName),
+    ];
   }
 
   List<String> get _filteredSkills {
@@ -64,18 +67,31 @@ class _SkillsSectionState extends State<SkillsSection> {
                       },
                       borderRadius: BorderRadius.circular(20),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
-                          color: isActive ? theme.primaryColor : (isDark ? const Color(0xFF111111) : Colors.grey.shade100),
+                          color: isActive
+                              ? theme.primaryColor
+                              : (isDark
+                                    ? const Color(0xFF111111)
+                                    : Colors.grey.shade100),
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
-                            color: isActive ? theme.primaryColor : (isDark ? const Color(0xFF222222) : Colors.grey.shade300),
+                            color: isActive
+                                ? theme.primaryColor
+                                : (isDark
+                                      ? const Color(0xFF222222)
+                                      : Colors.grey.shade300),
                           ),
                         ),
                         child: Text(
                           _categories[index],
                           style: TextStyle(
-                            color: isActive ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+                            color: isActive
+                                ? Colors.white
+                                : (isDark ? Colors.white70 : Colors.black87),
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
                           ),
@@ -116,11 +132,7 @@ class _SkillsSectionState extends State<SkillsSection> {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          width: 50,
-          height: 3,
-          color: theme.primaryColor,
-        ),
+        Container(width: 50, height: 3, color: theme.primaryColor),
       ],
     );
   }
@@ -151,7 +163,7 @@ class _HoverSkillChipState extends State<HoverSkillChip> {
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         decoration: BoxDecoration(
           color: _isHovered
-              ? theme.primaryColor.withOpacity(0.1)
+              ? theme.primaryColor.withValues(alpha: 0.1)
               : (isDark ? const Color(0xFF111111) : Colors.white),
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
@@ -163,17 +175,19 @@ class _HoverSkillChipState extends State<HoverSkillChip> {
           boxShadow: _isHovered
               ? [
                   BoxShadow(
-                    color: theme.primaryColor.withOpacity(0.3),
+                    color: theme.primaryColor.withValues(alpha: 0.3),
                     blurRadius: 8,
                     spreadRadius: 0,
-                  )
+                  ),
                 ]
               : [],
         ),
         child: Text(
           widget.skill,
           style: TextStyle(
-            color: _isHovered ? theme.primaryColor : (isDark ? Colors.white70 : Colors.black87),
+            color: _isHovered
+                ? theme.primaryColor
+                : (isDark ? Colors.white70 : Colors.black87),
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),

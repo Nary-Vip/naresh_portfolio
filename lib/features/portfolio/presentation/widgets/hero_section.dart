@@ -75,9 +75,11 @@ class _HeroSectionState extends State<HeroSection> {
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
           decoration: BoxDecoration(
-            color: theme.primaryColor.withOpacity(0.1),
+            color: theme.primaryColor.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: theme.primaryColor.withOpacity(0.2)),
+            border: Border.all(
+              color: theme.primaryColor.withValues(alpha: 0.2),
+            ),
           ),
           child: Text(
             "Hello, World! I am",
@@ -505,7 +507,7 @@ class CloudPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = primaryColor.withOpacity(0.04)
+      ..color = primaryColor.withValues(alpha: 0.04)
       ..style = PaintingStyle.fill;
 
     // Draw central circular cage/shield
@@ -515,7 +517,7 @@ class CloudPainter extends CustomPainter {
 
     // Dynamic ring
     final ringPaint = Paint()
-      ..color = primaryColor.withOpacity(0.12)
+      ..color = primaryColor.withValues(alpha: 0.12)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     canvas.drawCircle(
@@ -548,7 +550,7 @@ class CloudPainter extends CustomPainter {
       textPainter.text = TextSpan(
         text: tag.text,
         style: TextStyle(
-          color: primaryColor.withOpacity(opacity),
+          color: primaryColor.withValues(alpha: opacity),
           fontWeight: FontWeight.bold,
           fontSize: 14 * tag.scale,
         ),

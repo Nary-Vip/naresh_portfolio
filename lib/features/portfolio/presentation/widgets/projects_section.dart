@@ -40,7 +40,9 @@ class ProjectsSection extends StatelessWidget {
                 ),
                 itemCount: nareshPortfolioData.projects.length,
                 itemBuilder: (context, index) {
-                  return ProjectCard(project: nareshPortfolioData.projects[index]);
+                  return ProjectCard(
+                    project: nareshPortfolioData.projects[index],
+                  );
                 },
               ),
               mobile: Column(
@@ -72,11 +74,7 @@ class ProjectsSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          width: 50,
-          height: 3,
-          color: theme.primaryColor,
-        ),
+        Container(width: 50, height: 3, color: theme.primaryColor),
       ],
     );
   }
@@ -112,27 +110,29 @@ class _ProjectCardState extends State<ProjectCard> {
       onExit: (_) => setState(() => _isHovered = false),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 250),
-        transform: _isHovered 
-            ? (Matrix4.identity()..translate(0, -8, 0)) 
+        transform: _isHovered
+            ? (Matrix4.identity()..translateByDouble(0.0, -8.0, 0.0, 1.0))
             : Matrix4.identity(),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          boxShadow: _isHovered 
+          boxShadow: _isHovered
               ? [
                   BoxShadow(
-                    color: theme.primaryColor.withOpacity(0.2),
+                    color: theme.primaryColor.withValues(alpha: 0.2),
                     blurRadius: 20,
                     spreadRadius: 2,
                     offset: const Offset(0, 12),
-                  )
+                  ),
                 ]
               : [
                   BoxShadow(
-                    color: isDark ? Colors.black.withOpacity(0.2) : Colors.grey.shade100,
+                    color: isDark
+                        ? Colors.black.withValues(alpha: 0.2)
+                        : Colors.grey.shade100,
                     blurRadius: 10,
                     spreadRadius: -2,
                     offset: const Offset(0, 4),
-                  )
+                  ),
                 ],
         ),
         child: Card(
@@ -182,7 +182,7 @@ class _ProjectCardState extends State<ProjectCard> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                
+
                 // Description text
                 Text(
                   widget.project.description,
@@ -191,7 +191,7 @@ class _ProjectCardState extends State<ProjectCard> {
                   ),
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Bullet points
                 Expanded(
                   child: ListView.builder(
@@ -204,7 +204,13 @@ class _ProjectCardState extends State<ProjectCard> {
                         child: Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text("▸", style: TextStyle(color: theme.primaryColor, fontSize: 14)),
+                            Text(
+                              "▸",
+                              style: TextStyle(
+                                color: theme.primaryColor,
+                                fontSize: 14,
+                              ),
+                            ),
                             const SizedBox(width: 8),
                             Expanded(
                               child: Text(
@@ -229,9 +235,14 @@ class _ProjectCardState extends State<ProjectCard> {
                   runSpacing: 6,
                   children: widget.project.technologies.map((tech) {
                     return Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
-                        color: isDark ? const Color(0xFF222222) : Colors.grey.shade100,
+                        color: isDark
+                            ? const Color(0xFF222222)
+                            : Colors.grey.shade100,
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Text(

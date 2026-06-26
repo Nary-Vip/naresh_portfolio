@@ -19,7 +19,9 @@ class ExperienceSection extends StatelessWidget {
         vertical: 40,
       ),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 1000), // Narrower for reading comfort
+        constraints: const BoxConstraints(
+          maxWidth: 1000,
+        ), // Narrower for reading comfort
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -34,8 +36,9 @@ class ExperienceSection extends StatelessWidget {
               itemCount: nareshPortfolioData.experiences.length,
               itemBuilder: (context, index) {
                 final exp = nareshPortfolioData.experiences[index];
-                final isLast = index == nareshPortfolioData.experiences.length - 1;
-                
+                final isLast =
+                    index == nareshPortfolioData.experiences.length - 1;
+
                 return Stack(
                   children: [
                     // Vertical Line
@@ -46,7 +49,9 @@ class ExperienceSection extends StatelessWidget {
                         left: 7, // Centered relative to the 16px dot
                         child: Container(
                           width: 2,
-                          color: isDark ? const Color(0xFF222222) : Colors.grey.shade300,
+                          color: isDark
+                              ? const Color(0xFF222222)
+                              : Colors.grey.shade300,
                         ),
                       ),
                     // Timeline Dot Indicator
@@ -61,10 +66,10 @@ class ExperienceSection extends StatelessWidget {
                           shape: BoxShape.circle,
                           boxShadow: [
                             BoxShadow(
-                              color: theme.primaryColor.withOpacity(0.4),
+                              color: theme.primaryColor.withValues(alpha: 0.4),
                               blurRadius: 6,
                               spreadRadius: 2,
-                            )
+                            ),
                           ],
                         ),
                       ),
@@ -98,11 +103,7 @@ class ExperienceSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          width: 50,
-          height: 3,
-          color: theme.primaryColor,
-        ),
+        Container(width: 50, height: 3, color: theme.primaryColor),
       ],
     );
   }
@@ -124,10 +125,10 @@ class _ExperienceCardState extends State<ExperienceCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     // Determine how many bullet points to show by default
-    final visibleBullets = _isExpanded 
-        ? widget.exp.bulletPoints 
+    final visibleBullets = _isExpanded
+        ? widget.exp.bulletPoints
         : widget.exp.bulletPoints.take(3).toList();
 
     return Card(
@@ -202,7 +203,7 @@ class _ExperienceCardState extends State<ExperienceCard> {
                           width: 6,
                           height: 6,
                           decoration: BoxDecoration(
-                            color: theme.primaryColor.withOpacity(0.7),
+                            color: theme.primaryColor.withValues(alpha: 0.7),
                             shape: BoxShape.circle,
                           ),
                         ),
@@ -234,11 +235,15 @@ class _ExperienceCardState extends State<ExperienceCard> {
                     });
                   },
                   icon: Icon(
-                    _isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                    _isExpanded
+                        ? Icons.keyboard_arrow_up
+                        : Icons.keyboard_arrow_down,
                     color: theme.primaryColor,
                   ),
                   label: Text(
-                    _isExpanded ? "Collapse Details" : "Show All Accomplishments",
+                    _isExpanded
+                        ? "Collapse Details"
+                        : "Show All Accomplishments",
                     style: TextStyle(
                       color: theme.primaryColor,
                       fontWeight: FontWeight.bold,

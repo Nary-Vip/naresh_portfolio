@@ -48,7 +48,7 @@ class EducationSection extends StatelessWidget {
                       Container(
                         padding: const EdgeInsets.all(20),
                         decoration: BoxDecoration(
-                          color: theme.primaryColor.withOpacity(0.1),
+                          color: theme.primaryColor.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
@@ -69,7 +69,7 @@ class EducationSection extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: theme.primaryColor.withOpacity(0.1),
+                              color: theme.primaryColor.withValues(alpha: 0.1),
                               shape: BoxShape.circle,
                             ),
                             child: Icon(
@@ -158,12 +158,15 @@ class EducationSection extends StatelessWidget {
           children: [
             Text(
               "Period: ${nareshPortfolioData.educationPeriod}",
-              style: TextStyle(color: textColor.withOpacity(0.8), fontSize: 14),
+              style: TextStyle(
+                color: textColor.withValues(alpha: 0.8),
+                fontSize: 14,
+              ),
             ),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: theme.primaryColor.withOpacity(0.1),
+                color: theme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(

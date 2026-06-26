@@ -18,7 +18,7 @@ class CircularThemeReveal extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final themeData = isDark ? AppTheme.darkTheme : AppTheme.lightTheme;
-    
+
     return AnimatedTheme(
       data: themeData,
       duration: const Duration(milliseconds: 600),

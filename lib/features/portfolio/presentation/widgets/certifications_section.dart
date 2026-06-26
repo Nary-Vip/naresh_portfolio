@@ -40,7 +40,9 @@ class CertificationsSection extends StatelessWidget {
                 ),
                 itemCount: nareshPortfolioData.certifications.length,
                 itemBuilder: (context, index) {
-                  return CertificationCard(cert: nareshPortfolioData.certifications[index]);
+                  return CertificationCard(
+                    cert: nareshPortfolioData.certifications[index],
+                  );
                 },
               ),
               mobile: Column(
@@ -72,11 +74,7 @@ class CertificationsSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          width: 50,
-          height: 3,
-          color: theme.primaryColor,
-        ),
+        Container(width: 50, height: 3, color: theme.primaryColor),
       ],
     );
   }
@@ -133,7 +131,7 @@ class _CertificationCardState extends State<CertificationCard> {
                     Container(
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
-                        color: theme.primaryColor.withOpacity(0.1),
+                        color: theme.primaryColor.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
@@ -152,7 +150,7 @@ class _CertificationCardState extends State<CertificationCard> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                
+
                 // Certification details
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -188,7 +186,11 @@ class _CertificationCardState extends State<CertificationCard> {
                       minimumSize: const Size(50, 30),
                       tapTargetSize: MaterialTapTargetSize.shrinkWrap,
                     ),
-                    icon: Icon(Icons.arrow_forward, size: 16, color: theme.primaryColor),
+                    icon: Icon(
+                      Icons.arrow_forward,
+                      size: 16,
+                      color: theme.primaryColor,
+                    ),
                     label: Text(
                       "View Credential",
                       style: TextStyle(

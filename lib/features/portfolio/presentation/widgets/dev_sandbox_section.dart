@@ -59,7 +59,12 @@ class _DevSandboxSectionState extends State<DevSandboxSection> {
                     // Left: IDE Window
                     Expanded(
                       flex: 6,
-                      child: _buildIdeWindow(theme, isDark, activeSnippet, isExpanded: true),
+                      child: _buildIdeWindow(
+                        theme,
+                        isDark,
+                        activeSnippet,
+                        isExpanded: true,
+                      ),
                     ),
                     const SizedBox(width: 40),
                     // Right: Explanatory and Education Card
@@ -73,7 +78,12 @@ class _DevSandboxSectionState extends State<DevSandboxSection> {
             else
               Column(
                 children: [
-                  _buildIdeWindow(theme, isDark, activeSnippet, isExpanded: false),
+                  _buildIdeWindow(
+                    theme,
+                    isDark,
+                    activeSnippet,
+                    isExpanded: false,
+                  ),
                   const SizedBox(height: 32),
                   _buildDetailsPanel(theme, isDark, activeSnippet),
                 ],
@@ -98,11 +108,7 @@ class _DevSandboxSectionState extends State<DevSandboxSection> {
           ),
         ),
         const SizedBox(height: 8),
-        Container(
-          width: 50,
-          height: 3,
-          color: theme.primaryColor,
-        ),
+        Container(width: 50, height: 3, color: theme.primaryColor),
       ],
     );
   }
@@ -213,15 +219,23 @@ class _DevSandboxSectionState extends State<DevSandboxSection> {
                   onPressed: () => _copyToClipboard(snippet.code),
                   style: TextButton.styleFrom(
                     foregroundColor: theme.primaryColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 8,
+                    ),
                   ),
                   icon: Icon(
-                    _copied ? Icons.check_circle_outline : Icons.copy_all_outlined,
+                    _copied
+                        ? Icons.check_circle_outline
+                        : Icons.copy_all_outlined,
                     size: 16,
                   ),
                   label: Text(
                     _copied ? "Copied!" : "Copy",
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ],
@@ -234,44 +248,59 @@ class _DevSandboxSectionState extends State<DevSandboxSection> {
             child: SingleChildScrollView(
               scrollDirection: Axis.horizontal,
               child: Row(
-                children: List.generate(nareshPortfolioData.sandboxSnippets.length, (index) {
-                  final s = nareshPortfolioData.sandboxSnippets[index];
-                  final isActive = index == _activeTabIndex;
-                  return InkWell(
-                    onTap: () {
-                      setState(() {
-                        _activeTabIndex = index;
-                      });
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                      decoration: BoxDecoration(
-                        color: isActive ? const Color(0xFF151515) : const Color(0xFF1E1E1E),
-                        border: Border(
-                          right: const BorderSide(color: Color(0xFF2A2A2A), width: 1),
-                          bottom: BorderSide(
-                            color: isActive ? theme.primaryColor : Colors.transparent,
-                            width: 2,
-                          ),
+                children: List.generate(
+                  nareshPortfolioData.sandboxSnippets.length,
+                  (index) {
+                    final s = nareshPortfolioData.sandboxSnippets[index];
+                    final isActive = index == _activeTabIndex;
+                    return InkWell(
+                      onTap: () {
+                        setState(() {
+                          _activeTabIndex = index;
+                        });
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 10,
                         ),
-                      ),
-                      child: Row(
-                        children: [
-                          _buildLanguageIndicator(s.iconName),
-                          const SizedBox(width: 8),
-                          Text(
-                            s.fileName,
-                            style: TextStyle(
-                              color: isActive ? Colors.white : Colors.white54,
-                              fontSize: 13,
-                              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+                        decoration: BoxDecoration(
+                          color: isActive
+                              ? const Color(0xFF151515)
+                              : const Color(0xFF1E1E1E),
+                          border: Border(
+                            right: const BorderSide(
+                              color: Color(0xFF2A2A2A),
+                              width: 1,
+                            ),
+                            bottom: BorderSide(
+                              color: isActive
+                                  ? theme.primaryColor
+                                  : Colors.transparent,
+                              width: 2,
                             ),
                           ),
-                        ],
+                        ),
+                        child: Row(
+                          children: [
+                            _buildLanguageIndicator(s.iconName),
+                            const SizedBox(width: 8),
+                            Text(
+                              s.fileName,
+                              style: TextStyle(
+                                color: isActive ? Colors.white : Colors.white54,
+                                fontSize: 13,
+                                fontWeight: isActive
+                                    ? FontWeight.bold
+                                    : FontWeight.normal,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  );
-                }),
+                    );
+                  },
+                ),
               ),
             ),
           ),
@@ -316,7 +345,11 @@ class _DevSandboxSectionState extends State<DevSandboxSection> {
     );
   }
 
-  Widget _buildDetailsPanel(ThemeData theme, bool isDark, SandboxSnippet snippet) {
+  Widget _buildDetailsPanel(
+    ThemeData theme,
+    bool isDark,
+    SandboxSnippet snippet,
+  ) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -375,14 +408,10 @@ class _DevSandboxSectionState extends State<DevSandboxSection> {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: theme.primaryColor.withOpacity(0.1),
+                color: theme.primaryColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(8),
               ),
-              child: Icon(
-                icon,
-                color: theme.primaryColor,
-                size: 20,
-              ),
+              child: Icon(icon, color: theme.primaryColor, size: 20),
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -431,48 +460,65 @@ class _DevSandboxSectionState extends State<DevSandboxSection> {
 
     for (final match in pattern.allMatches(code)) {
       if (match.start > lastMatchEnd) {
-        spans.add(TextSpan(
-          text: code.substring(lastMatchEnd, match.start),
-          style: const TextStyle(color: Colors.white70),
-        ));
+        spans.add(
+          TextSpan(
+            text: code.substring(lastMatchEnd, match.start),
+            style: const TextStyle(color: Colors.white70),
+          ),
+        );
       }
 
       final matchedText = match.group(0)!;
       if (match.group(1) != null) {
-        spans.add(TextSpan(
-          text: matchedText,
-          style: const TextStyle(color: Color(0xFF6A9955), fontStyle: FontStyle.italic),
-        ));
+        spans.add(
+          TextSpan(
+            text: matchedText,
+            style: const TextStyle(
+              color: Color(0xFF6A9955),
+              fontStyle: FontStyle.italic,
+            ),
+          ),
+        );
       } else if (match.group(2) != null) {
-        spans.add(TextSpan(
-          text: matchedText,
-          style: const TextStyle(color: Color(0xFFCE9178)),
-        ));
+        spans.add(
+          TextSpan(
+            text: matchedText,
+            style: const TextStyle(color: Color(0xFFCE9178)),
+          ),
+        );
       } else if (match.group(3) != null) {
-        spans.add(TextSpan(
-          text: matchedText,
-          style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
-        ));
+        spans.add(
+          TextSpan(
+            text: matchedText,
+            style: TextStyle(color: primaryColor, fontWeight: FontWeight.bold),
+          ),
+        );
       } else if (match.group(4) != null) {
-        spans.add(TextSpan(
-          text: matchedText,
-          style: const TextStyle(color: Color(0xFFB5CEA8)),
-        ));
+        spans.add(
+          TextSpan(
+            text: matchedText,
+            style: const TextStyle(color: Color(0xFFB5CEA8)),
+          ),
+        );
       } else if (match.group(5) != null) {
-        spans.add(TextSpan(
-          text: matchedText,
-          style: const TextStyle(color: Color(0xFFDCDCAA)),
-        ));
+        spans.add(
+          TextSpan(
+            text: matchedText,
+            style: const TextStyle(color: Color(0xFFDCDCAA)),
+          ),
+        );
       }
 
       lastMatchEnd = match.end;
     }
 
     if (lastMatchEnd < code.length) {
-      spans.add(TextSpan(
-        text: code.substring(lastMatchEnd),
-        style: const TextStyle(color: Colors.white70),
-      ));
+      spans.add(
+        TextSpan(
+          text: code.substring(lastMatchEnd),
+          style: const TextStyle(color: Colors.white70),
+        ),
+      );
     }
 
     return spans;

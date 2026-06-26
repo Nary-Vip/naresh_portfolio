@@ -47,11 +47,7 @@ class ExploringSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 8),
-            Container(
-              width: 50,
-              height: 3,
-              color: theme.primaryColor,
-            ),
+            Container(width: 50, height: 3, color: theme.primaryColor),
             const SizedBox(height: 24),
             Text(
               "Future Tech & Research Areas",
@@ -62,7 +58,7 @@ class ExploringSection extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            
+
             // Grid of cards
             Responsive(
               desktop: Row(
@@ -100,7 +96,7 @@ class ExploringSection extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color: theme.primaryColor.withOpacity(0.1),
+                color: theme.primaryColor.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
               child: Icon(
@@ -112,17 +108,12 @@ class ExploringSection extends StatelessWidget {
             const SizedBox(height: 20),
             Text(
               item.topic,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-              ),
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
             ),
             const SizedBox(height: 10),
             Text(
               item.description,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                height: 1.5,
-              ),
+              style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
             ),
           ],
         ),

@@ -22,7 +22,8 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
     // Welcome message
     _messages.add(
       const ChatMessage(
-        text: "Hi! I am Naresh's AI Assistant. Ask me anything about his projects, skills, or career history!",
+        text:
+            "Hi! I am Naresh's AI Assistant. Ask me anything about his projects, skills, or career history!",
         isUser: false,
       ),
     );
@@ -72,11 +73,14 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
 
   String _generateAiReply(String query) {
     final lower = query.toLowerCase();
-    
+
     // Check FAQ list
     for (final faq in nareshPortfolioData.faqList) {
-      if (lower.contains(faq.question.toLowerCase()) || 
-          faq.question.toLowerCase().split(' ').any((word) => word.length > 4 && lower.contains(word))) {
+      if (lower.contains(faq.question.toLowerCase()) ||
+          faq.question
+              .toLowerCase()
+              .split(' ')
+              .any((word) => word.length > 4 && lower.contains(word))) {
         return faq.answer;
       }
     }
@@ -84,13 +88,21 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
     // Keyword matching
     if (lower.contains("flutter") || lower.contains("dart")) {
       return "Naresh has 2+ years of experience with Flutter and Dart, building 5+ production mobile applications and implementing custom WebSocket feeds, geofencing, and GoRouter setups.";
-    } else if (lower.contains("native") || lower.contains("kotlin") || lower.contains("swift")) {
+    } else if (lower.contains("native") ||
+        lower.contains("kotlin") ||
+        lower.contains("swift")) {
       return "He is proficient at building Flutter Method Channels to bridge native Kotlin (Jetpack Compose) and Swift capabilities, including payment gateways and geofencing SDKs.";
-    } else if (lower.contains("experience") || lower.contains("job") || lower.contains("work")) {
+    } else if (lower.contains("experience") ||
+        lower.contains("job") ||
+        lower.contains("work")) {
       return "Naresh works as an SDE-1 at Rootquotient (Jun 2024 - Present), and previously completed two SDE Internship cycles at Rootquotient. He has built and delivered fintech and logistics products.";
-    } else if (lower.contains("education") || lower.contains("college") || lower.contains("cgpa")) {
+    } else if (lower.contains("education") ||
+        lower.contains("college") ||
+        lower.contains("cgpa")) {
       return "He graduated from the Coimbatore Institute of Technology (CIT) in 2024 with an Integrated M.Sc. in Artificial Intelligence & Machine Learning and a CGPA of 8.44.";
-    } else if (lower.contains("mcp") || lower.contains("agent") || lower.contains("ai")) {
+    } else if (lower.contains("mcp") ||
+        lower.contains("agent") ||
+        lower.contains("ai")) {
       return "Naresh is certified in Anthropic Model Context Protocol (MCP) and Agent Skills. He built on-device LLM proof-of-concepts using MediaPipe and LiteRT.";
     } else if (lower.contains("fitsync") || lower.contains("project")) {
       return "His featured project is FitSync, an offline-first workout management Android app built using Kotlin, Jetpack Compose, MVVM, Hilt, Room, and a Node.js API rate-limited backend.";
@@ -103,7 +115,7 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    
+
     return Container(
       width: 360,
       height: 480,
@@ -116,11 +128,11 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 20,
             spreadRadius: 2,
             offset: const Offset(0, 10),
-          )
+          ),
         ],
       ),
       child: Column(
@@ -143,7 +155,11 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
                     const CircleAvatar(
                       radius: 16,
                       backgroundColor: Colors.white,
-                      child: Icon(Icons.smart_toy, color: Colors.deepOrange, size: 20),
+                      child: Icon(
+                        Icons.smart_toy,
+                        color: Colors.deepOrange,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(width: 10),
                     Column(
@@ -151,11 +167,18 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
                       children: [
                         const Text(
                           "Naresh's AI Assistant",
-                          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14),
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 14,
+                          ),
                         ),
                         Text(
                           "Online • Resume Agent",
-                          style: TextStyle(color: Colors.white.withOpacity(0.8), fontSize: 11),
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.8),
+                            fontSize: 11,
+                          ),
                         ),
                       ],
                     ),
@@ -177,7 +200,9 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
               child: ListView(
                 controller: _scrollController,
                 children: [
-                  ..._messages.map((msg) => _buildMessageBubble(theme, isDark, msg)),
+                  ..._messages.map(
+                    (msg) => _buildMessageBubble(theme, isDark, msg),
+                  ),
                   if (_isTyping) _buildTypingIndicator(theme, isDark),
                 ],
               ),
@@ -194,7 +219,9 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
               color: isDark ? const Color(0xFF0F0F0F) : Colors.white,
               border: Border(
                 top: BorderSide(
-                  color: isDark ? const Color(0xFF1E1E1E) : Colors.grey.shade200,
+                  color: isDark
+                      ? const Color(0xFF1E1E1E)
+                      : Colors.grey.shade200,
                   width: 1,
                 ),
               ),
@@ -209,7 +236,10 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
                     decoration: const InputDecoration(
                       hintText: "Type a question...",
                       border: InputBorder.none,
-                      contentPadding: EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+                      contentPadding: EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
                     ),
                   ),
                 ),
@@ -233,8 +263,8 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         constraints: const BoxConstraints(maxWidth: 270),
         decoration: BoxDecoration(
-          color: msg.isUser 
-              ? theme.primaryColor 
+          color: msg.isUser
+              ? theme.primaryColor
               : (isDark ? const Color(0xFF1C1C1E) : Colors.grey.shade200),
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(12),
@@ -246,7 +276,9 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
         child: Text(
           msg.text,
           style: TextStyle(
-            color: msg.isUser ? Colors.white : (isDark ? Colors.white70 : Colors.black87),
+            color: msg.isUser
+                ? Colors.white
+                : (isDark ? Colors.white70 : Colors.black87),
             fontSize: 13,
             height: 1.4,
           ),
@@ -304,13 +336,18 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
               onTap: () => _handleSendMessage(chips[idx]),
               borderRadius: BorderRadius.circular(16),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: isDark ? const Color(0xFF121212) : Colors.white,
                   borderRadius: BorderRadius.circular(16),
                   border: Border.all(
-                    color: isDark ? const Color(0xFF222222) : Colors.grey.shade300,
+                    color: isDark
+                        ? const Color(0xFF222222)
+                        : Colors.grey.shade300,
                   ),
                 ),
                 child: Text(

@@ -18,8 +18,10 @@ class ThemeProvider extends ChangeNotifier {
     notifyListeners();
 
     // Toggle the actual theme mode
-    _themeMode = _themeMode == ThemeMode.dark ? ThemeMode.light : ThemeMode.dark;
-    
+    _themeMode = _themeMode == ThemeMode.dark
+        ? ThemeMode.light
+        : ThemeMode.dark;
+
     // We let the UI animation know that the theme state has updated.
     notifyListeners();
   }

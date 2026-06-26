@@ -61,7 +61,7 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
           boxShadow: [
             BoxShadow(
               color: isDark
-                  ? Colors.black.withOpacity(0.4)
+                  ? Colors.black.withValues(alpha: 0.4)
                   : Colors.grey.shade200,
               blurRadius: 20,
               spreadRadius: -5,
@@ -76,8 +76,8 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               color: isDark
-                  ? Colors.black.withOpacity(0.6)
-                  : Colors.white.withOpacity(0.7),
+                  ? Colors.black.withValues(alpha: 0.6)
+                  : Colors.white.withValues(alpha: 0.7),
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
@@ -283,7 +283,7 @@ class _HoverNavLinkState extends State<HoverNavLink> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
             color: _isHovered
-                ? theme.primaryColor.withOpacity(0.12)
+                ? theme.primaryColor.withValues(alpha: 0.12)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
           ),
