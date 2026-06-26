@@ -13,6 +13,10 @@ class ExploringSection extends StatelessWidget {
         return Icons.memory_outlined;
       case 'smart_toy':
         return Icons.smart_toy_outlined;
+      case 'bluetooth':
+        return Icons.bluetooth_outlined;
+      case 'psychology':
+        return Icons.psychology_outlined;
       default:
         return Icons.explore_outlined;
     }
@@ -59,26 +63,33 @@ class ExploringSection extends StatelessWidget {
             ),
             const SizedBox(height: 24),
 
-            // Grid of cards
-            Responsive(
-              desktop: Row(
-                children: nareshPortfolioData.exploring.map((item) {
-                  return Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 8.0),
+            // Responsive layout of cards using Wrap
+            LayoutBuilder(
+              builder: (context, constraints) {
+                final width = constraints.maxWidth;
+                final bool isTablet = Responsive.isTablet(context);
+
+                int columns = 1;
+                if (isTablet) {
+                  columns = 2;
+                } else if (Responsive.isDesktop(context)) {
+                  columns = 3;
+                }
+
+                final spacing = 16.0;
+                final cardWidth = (width - (spacing * (columns - 1))) / columns;
+
+                return Wrap(
+                  spacing: spacing,
+                  runSpacing: spacing,
+                  children: nareshPortfolioData.exploring.map((item) {
+                    return SizedBox(
+                      width: cardWidth,
                       child: _buildExploringCard(theme, isDark, item),
-                    ),
-                  );
-                }).toList(),
-              ),
-              mobile: Column(
-                children: nareshPortfolioData.exploring.map((item) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 16.0),
-                    child: _buildExploringCard(theme, isDark, item),
-                  );
-                }).toList(),
-              ),
+                    );
+                  }).toList(),
+                );
+              },
             ),
           ],
         ),
@@ -88,6 +99,7 @@ class ExploringSection extends StatelessWidget {
 
   Widget _buildExploringCard(ThemeData theme, bool isDark, ExploringItem item) {
     return Card(
+      margin: EdgeInsets.zero,
       child: Padding(
         padding: const EdgeInsets.all(24.0),
         child: Column(

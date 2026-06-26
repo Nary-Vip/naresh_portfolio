@@ -180,6 +180,18 @@ const PortfolioData nareshPortfolioData = PortfolioData(
           "Exploring the Model Context Protocol (MCP) to develop autonomous coding assistants, custom agent tools, and context-aware systems.",
       icon: "smart_toy",
     ),
+    ExploringItem(
+      topic: "Bluetooth & BLE Devices",
+      description:
+          "Exploring classic Bluetooth connections and BLE (Bluetooth Low Energy) devices to engineer real-time hardware data sync and IoT communication bridges.",
+      icon: "bluetooth",
+    ),
+    ExploringItem(
+      topic: "AI Integrated Workflows",
+      description:
+          "Exploring AI-integrated workflows by leveraging agentic skills and automated work agents to streamline business logic and operational processes.",
+      icon: "psychology",
+    ),
   ],
 
   skills: [
