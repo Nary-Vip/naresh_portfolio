@@ -1,3 +1,8 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
+String get web3FormsAccessKey =>
+    dotenv.env['WEB3FORMS_ACCESS_KEY'] ?? 'YOUR_ACCESS_KEY_HERE';
+
 class SandboxSnippet {
   final String fileName;
   final String language;
