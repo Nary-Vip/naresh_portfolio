@@ -16,7 +16,7 @@ void main() {
         home: Scaffold(
           body: FloatingNavbar(
             onHeroTap: () {},
-            onSandboxTap: () {},
+            onMetricsTap: () {},
             onSkillsTap: () {},
             onExperienceTap: () {},
             onProjectsTap: () {},
@@ -28,7 +28,7 @@ void main() {
     );
 
     // Verify that navigation labels are present in the UI
-    expect(find.text("Sandbox"), findsOneWidget);
+    expect(find.text("Impact"), findsOneWidget);
     expect(find.text("Skills"), findsOneWidget);
   });
 }

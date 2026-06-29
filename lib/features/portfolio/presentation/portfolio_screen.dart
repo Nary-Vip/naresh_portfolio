@@ -2,7 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'widgets/navbar.dart';
 import 'widgets/hero_section.dart';
-import 'widgets/dev_sandbox_section.dart';
+import 'widgets/impact_metrics_section.dart';
 import 'widgets/education_section.dart';
 import 'widgets/exploring_section.dart';
 import 'widgets/skills_section.dart';
@@ -24,7 +24,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
 
   // Keys for section scrolling
   final GlobalKey _heroKey = GlobalKey();
-  final GlobalKey _sandboxKey = GlobalKey();
+  final GlobalKey _metricsKey = GlobalKey();
   final GlobalKey _skillsKey = GlobalKey();
   final GlobalKey _experienceKey = GlobalKey();
   final GlobalKey _projectsKey = GlobalKey();
@@ -111,8 +111,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                   // Divider
                   _buildDivider(),
 
-                  // Sandbox Section
-                  DevSandboxSection(key: _sandboxKey),
+                  // Impact Metrics Section
+                  ImpactMetricsSection(key: _metricsKey),
 
                   // Exploring Section
                   ExploringSection(),
@@ -161,7 +161,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             right: 0,
             child: FloatingNavbar(
               onHeroTap: () => _scrollToSection(_heroKey),
-              onSandboxTap: () => _scrollToSection(_sandboxKey),
+              onMetricsTap: () => _scrollToSection(_metricsKey),
               onSkillsTap: () => _scrollToSection(_skillsKey),
               onExperienceTap: () => _scrollToSection(_experienceKey),
               onProjectsTap: () => _scrollToSection(_projectsKey),

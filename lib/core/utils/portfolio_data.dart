@@ -7,22 +7,16 @@ String get web3FormsAccessKey =>
 String get geminiApiKey =>
     dotenv.env['GEMINI_API_KEY'] ?? '';
 
-class SandboxSnippet {
-  final String fileName;
-  final String language;
-  final String code;
-  final String problemSolved;
-  final String implementation;
-  final String result;
-  final String iconName; // 'kotlin', 'dart', 'typescript'
+class ImpactMetric {
+  final String value;
+  final String label;
+  final String description;
+  final String iconName; // e.g. 'work_outline', 'rocket_launch_outlined', 'speed_outlined', 'security_outlined', 'sync_outlined'
 
-  const SandboxSnippet({
-    required this.fileName,
-    required this.language,
-    required this.code,
-    required this.problemSolved,
-    required this.implementation,
-    required this.result,
+  const ImpactMetric({
+    required this.value,
+    required this.label,
+    required this.description,
     required this.iconName,
   });
 }
@@ -49,7 +43,7 @@ class PortfolioData {
   final List<ProjectItem> projects;
   final List<CertificationItem> certifications;
   final List<ChatbotFAQ> faqList;
-  final List<SandboxSnippet> sandboxSnippets; // Sandbox Snippets
+  final List<ImpactMetric> impactMetrics;
 
   const PortfolioData({
     required this.name,
@@ -69,7 +63,7 @@ class PortfolioData {
     required this.projects,
     required this.certifications,
     required this.faqList,
-    required this.sandboxSnippets,
+    required this.impactMetrics,
   });
 }
 
@@ -426,119 +420,36 @@ const PortfolioData nareshPortfolioData = PortfolioData(
           "Yes, he conducted on-device LLM proof-of-concepts using MediaPipe and LiteRT. He holds certifications from Anthropic in Model Context Protocol (MCP), Agent Skills, and Claude Code, demonstrating a strong foundation in modern AI agent development.",
     ),
   ],
-  sandboxSnippets: [
-    SandboxSnippet(
-      fileName: "SecureBridge.kt",
-      language: "Kotlin",
-      iconName: "kotlin",
-      problemSolved:
-          "Remediation of critical VAPT (Vulnerability Assessment and Penetration Testing) vulnerabilities in a production fintech wallet.",
-      implementation:
-          "Written in native Kotlin. It generates hardware-backed cryptographic keys via Android KeyStore and detects rooted devices to prevent session hijacking.",
-      result:
-          "Exposed to Flutter via custom Method Channels, securing user wallets against local environment attacks.",
-      code: """package com.rootquotient.portfolio.security
-
-import io.flutter.plugin.common.MethodChannel
-import android.content.Context
-
-class SecureBridge(private val context: Context) {
-    companion object {
-        const val CHANNEL = "com.rootquotient.app/security"
-    }
-
-    fun handleMethod(method: String, args: Map<String, Any>?, result: MethodChannel.Result) {
-        when (method) {
-            "isDeviceRooted" -> {
-                val isRooted = CheckRoot.isRooted(context)
-                result.success(isRooted)
-            }
-            "initSecureStorage" -> {
-                val alias = args?.get("alias") as? String ?: "default_key"
-                val success = KeystoreHelper.generateKey(alias)
-                result.success(success)
-            }
-            else -> result.notImplemented()
-        }
-    }
-}""",
+  impactMetrics: [
+    ImpactMetric(
+      value: "2+",
+      label: "Years Experience",
+      description: "Developing robust mobile applications for Android and iOS using Flutter and native integrations.",
+      iconName: "work_outline",
     ),
-    SandboxSnippet(
-      fileName: "cache_interceptor.dart",
-      language: "Dart",
-      iconName: "dart",
-      problemSolved:
-          "High network latency and repetitive API calls causing poor user experience and redundant server loads.",
-      implementation:
-          "Built a custom middleware interceptor for the Dio network client, using a local Hive box to store and serve cached JSON responses key-value style.",
-      result:
-          "Reduced average mobile app screen load times by 30-40% and improved offline usability.",
-      code: """import 'package:dio/dio.dart';
-import 'package:hive/hive.dart';
-
-class CacheInterceptor extends Interceptor {
-  final Box _cacheBox;
-  CacheInterceptor(this._cacheBox);
-
-  @override
-  void onRequest(RequestOptions options, RequestInterceptorHandler handler) {
-    if (options.method == 'GET') {
-      final cachedData = _cacheBox.get(options.uri.toString());
-      if (cachedData != null) {
-        return handler.resolve(Response(
-          requestOptions: options,
-          data: cachedData,
-          statusCode: 200,
-        ));
-      }
-    }
-    super.onRequest(options, handler);
-  }
-
-  @override
-  void onResponse(Response response, ResponseInterceptorHandler handler) {
-    if (response.requestOptions.method == 'GET' && response.statusCode == 200) {
-      _cacheBox.put(response.requestOptions.uri.toString(), response.data);
-    }
-    super.onResponse(response, handler);
-  }
-}""",
+    ImpactMetric(
+      value: "Modular",
+      label: "Clean Architecture",
+      description: "Designing modular and testable codebases using Clean Architecture and MVVM patterns.",
+      iconName: "layers_outlined",
     ),
-    SandboxSnippet(
-      fileName: "rate_limiter.ts",
-      language: "TypeScript",
-      iconName: "typescript",
-      problemSolved:
-          "Protecting server-side authorization routes and APIs from Denial of Service (DoS) and brute-force attacks.",
-      implementation:
-          "Express middleware using Redis sorted sets (ZSET) to implement a highly precise sliding-window rate limiting algorithm.",
-      result:
-          "Prevents backend server load spikes while maintaining a smooth experience for legitimate client requests.",
-      code: """import { Request, Response, NextFunction } from 'express';
-import redisClient from '../config/redis';
-
-export const rateLimiter = async (req: Request, res: Response, next: NextFunction) => {
-    const ip = req.ip;
-    const limit = 100; // max requests
-    const windowMs = 60000; // 1 minute window
-
-    const currentTimestamp = Date.now();
-    const key = `ratelimit:\${ip}`;
-
-    const transaction = redisClient.multi();
-    transaction.zremrangebyscore(key, 0, currentTimestamp - windowMs);
-    transaction.zadd(key, currentTimestamp, currentTimestamp.toString());
-    transaction.zcard(key);
-    transaction.expire(key, Math.ceil(windowMs / 1000));
-
-    const results = await transaction.exec();
-    const requestCount = results ? (results[2] as number) : 0;
-
-    if (requestCount > limit) {
-        return res.status(429).json({ error: 'Too many requests' });
-    }
-    next();
-};""",
+    ImpactMetric(
+      value: "Optimized",
+      label: "Performance Profiling",
+      description: "Profiling mobile rendering cycles with DevTools to eliminate layout and memory bottlenecks.",
+      iconName: "speed_outlined",
+    ),
+    ImpactMetric(
+      value: "80-90%",
+      label: "Test Coverage",
+      description: "Maintaining codebase reliability and stability by securing robust unit and widget test coverage.",
+      iconName: "checklist_outlined",
+    ),
+    ImpactMetric(
+      value: "Real-time",
+      label: "WebSocket & SSE",
+      description: "Engineered low-latency WebSockets and Server-Sent Events for real-time data streaming.",
+      iconName: "sync_outlined",
     ),
   ],
 );

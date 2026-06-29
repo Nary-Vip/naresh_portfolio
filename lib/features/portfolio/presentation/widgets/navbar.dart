@@ -5,7 +5,7 @@ import '../../../../main.dart';
 
 class FloatingNavbar extends StatefulWidget {
   final VoidCallback onHeroTap;
-  final VoidCallback onSandboxTap;
+  final VoidCallback onMetricsTap;
   final VoidCallback onSkillsTap;
   final VoidCallback onExperienceTap;
   final VoidCallback onProjectsTap;
@@ -15,7 +15,7 @@ class FloatingNavbar extends StatefulWidget {
   const FloatingNavbar({
     super.key,
     required this.onHeroTap,
-    required this.onSandboxTap,
+    required this.onMetricsTap,
     required this.onSkillsTap,
     required this.onExperienceTap,
     required this.onProjectsTap,
@@ -120,8 +120,8 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
                         Row(
                           children: [
                             HoverNavLink(
-                              text: "Sandbox",
-                              onTap: widget.onSandboxTap,
+                              text: "Impact",
+                              onTap: widget.onMetricsTap,
                             ),
                             const SizedBox(width: 8),
                             HoverNavLink(
@@ -202,8 +202,8 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
                       padding: const EdgeInsets.only(top: 12),
                       child: Column(
                         children: [
-                          _buildMobileNavLink("Sandbox", () {
-                            widget.onSandboxTap();
+                          _buildMobileNavLink("Impact", () {
+                            widget.onMetricsTap();
                             setState(() => _isMenuOpen = false);
                           }),
                           _buildMobileNavLink("Skills", () {
