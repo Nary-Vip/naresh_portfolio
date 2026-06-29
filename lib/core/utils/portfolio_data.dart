@@ -3,8 +3,9 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 String get web3FormsAccessKey =>
     dotenv.env['WEB3FORMS_ACCESS_KEY'] ?? 'YOUR_ACCESS_KEY_HERE';
 
-String get openRouterApiKey =>
-    dotenv.env['OPEN_ROUTER'] ?? '';
+
+String get geminiApiKey =>
+    dotenv.env['GEMINI_API_KEY'] ?? '';
 
 class SandboxSnippet {
   final String fileName;

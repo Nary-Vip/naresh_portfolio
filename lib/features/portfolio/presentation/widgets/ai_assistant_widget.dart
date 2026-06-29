@@ -1,7 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import '../../../../core/services/gemini_service.dart';
 import '../../../../core/utils/portfolio_data.dart';
-import '../../../../core/services/openrouter_service.dart';
 
 class AiAssistantWidget extends StatefulWidget {
   final VoidCallback onClose;
@@ -24,7 +24,7 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
     _messages.add(
       const ChatMessage(
         text:
-            "Hi! I am Naresh's AI Assistant. Ask me anything about his projects, skills, or career history!",
+            "Hi! I am NaryAI. Ask me anything about my master, projects, skills, or career history!",
         isUser: false,
       ),
     );
@@ -74,20 +74,61 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
             })
         .toList();
 
-    final reply = await OpenRouterService.getChatResponse(payloadHistory);
+    ChatMessage? assistantMessage;
+    StreamSubscription<String>? subscription;
+    bool hasReceivedData = false;
 
-    if (mounted) {
-      setState(() {
-        _isTyping = false;
-        if (reply != null) {
-          _messages.add(ChatMessage(text: reply, isUser: false));
-        } else {
-          final fallbackReply = _generateAiReply(userText);
-          _messages.add(ChatMessage(text: fallbackReply, isUser: false));
+    subscription = GeminiService.getChatResponseStream(payloadHistory).listen(
+      (chunk) {
+        if (!mounted) return;
+        if (chunk.isEmpty) return;
+        hasReceivedData = true;
+
+        setState(() {
+          _isTyping = false;
+          if (assistantMessage == null) {
+            assistantMessage = ChatMessage(text: chunk, isUser: false);
+            _messages.add(assistantMessage!);
+          } else {
+            final updatedText = assistantMessage!.text + chunk;
+            final index = _messages.indexOf(assistantMessage!);
+            if (index != -1) {
+              assistantMessage = ChatMessage(text: updatedText, isUser: false);
+              _messages[index] = assistantMessage!;
+            }
+          }
+        });
+        _scrollToBottom();
+      },
+      onError: (err) {
+        subscription?.cancel();
+        _handleFallback(userText, assistantMessage);
+      },
+      onDone: () {
+        subscription?.cancel();
+        if (!hasReceivedData) {
+          _handleFallback(userText, assistantMessage);
         }
-      });
-      _scrollToBottom();
-    }
+      },
+      cancelOnError: true,
+    );
+  }
+
+  void _handleFallback(String userText, ChatMessage? assistantMessage) {
+    if (!mounted) return;
+    setState(() {
+      _isTyping = false;
+      final fallbackReply = _generateAiReply(userText);
+      if (assistantMessage != null) {
+        final index = _messages.indexOf(assistantMessage);
+        if (index != -1) {
+          _messages[index] = ChatMessage(text: fallbackReply, isUser: false);
+        }
+      } else {
+        _messages.add(ChatMessage(text: fallbackReply, isUser: false));
+      }
+    });
+    _scrollToBottom();
   }
 
   String _generateAiReply(String query) {
@@ -185,7 +226,7 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         const Text(
-                          "Naresh's AI Assistant",
+                          "NaryAI Assistant",
                           style: TextStyle(
                             color: Colors.white,
                             fontWeight: FontWeight.bold,
@@ -193,7 +234,7 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
                           ),
                         ),
                         Text(
-                          "Online • Resume Agent",
+                          "Online • Helper Agent",
                           style: TextStyle(
                             color: Colors.white.withValues(alpha: 0.8),
                             fontSize: 11,
