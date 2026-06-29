@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/utils/portfolio_data.dart';
+import '../../../../core/services/openrouter_service.dart';
 
 class AiAssistantWidget extends StatefulWidget {
   final VoidCallback onClose;
@@ -58,17 +59,35 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
     _scrollToBottom();
     _textController.clear();
 
-    // Simulate AI response
-    Timer(const Duration(milliseconds: 1000), () {
-      final reply = _generateAiReply(userText);
-      if (mounted) {
-        setState(() {
-          _isTyping = false;
+    _fetchResponse(userText);
+  }
+
+  Future<void> _fetchResponse(String userText) async {
+    final historyLimit = 10;
+    final startIndex = _messages.length > historyLimit ? _messages.length - historyLimit : 0;
+    
+    final List<Map<String, String>> payloadHistory = _messages
+        .sublist(startIndex)
+        .map((msg) => {
+              'role': msg.isUser ? 'user' : 'assistant',
+              'content': msg.text,
+            })
+        .toList();
+
+    final reply = await OpenRouterService.getChatResponse(payloadHistory);
+
+    if (mounted) {
+      setState(() {
+        _isTyping = false;
+        if (reply != null) {
           _messages.add(ChatMessage(text: reply, isUser: false));
-        });
-        _scrollToBottom();
-      }
-    });
+        } else {
+          final fallbackReply = _generateAiReply(userText);
+          _messages.add(ChatMessage(text: fallbackReply, isUser: false));
+        }
+      });
+      _scrollToBottom();
+    }
   }
 
   String _generateAiReply(String query) {
@@ -273,12 +292,20 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
             bottomRight: Radius.circular(msg.isUser ? 0 : 12),
           ),
         ),
-        child: Text(
-          msg.text,
+        child: MarkdownText(
+          text: msg.text,
           style: TextStyle(
             color: msg.isUser
                 ? Colors.white
                 : (isDark ? Colors.white70 : Colors.black87),
+            fontSize: 13,
+            height: 1.4,
+          ),
+          boldStyle: TextStyle(
+            color: msg.isUser
+                ? Colors.white
+                : (isDark ? Colors.white : Colors.black),
+            fontWeight: FontWeight.bold,
             fontSize: 13,
             height: 1.4,
           ),
@@ -372,4 +399,116 @@ class ChatMessage {
   final bool isUser;
 
   const ChatMessage({required this.text, required this.isUser});
+}
+
+class MarkdownText extends StatelessWidget {
+  final String text;
+  final TextStyle style;
+  final TextStyle boldStyle;
+
+  const MarkdownText({
+    super.key,
+    required this.text,
+    required this.style,
+    required this.boldStyle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final lines = text.split('\n');
+    final List<Widget> children = [];
+
+    for (final line in lines) {
+      if (line.trim().isEmpty) {
+        children.add(const SizedBox(height: 4));
+        continue;
+      }
+
+      final trimmed = line.trim();
+      final isBullet = trimmed.startsWith('- ') ||
+          trimmed.startsWith('* ') ||
+          trimmed.startsWith('• ');
+      final isNumbered = RegExp(r'^\d+\.\s').hasMatch(trimmed);
+
+      String content = line;
+      Widget lineWidget;
+
+      if (isBullet) {
+        content = trimmed.substring(2);
+        lineWidget = Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('• ', style: style),
+            Expanded(
+              child: RichText(
+                text: TextSpan(
+                  children: _parseInlineStyles(content),
+                  style: style,
+                ),
+              ),
+            ),
+          ],
+        );
+      } else if (isNumbered) {
+        final dotIndex = trimmed.indexOf('.');
+        final prefix = trimmed.substring(0, dotIndex + 2);
+        content = trimmed.substring(dotIndex + 2);
+        lineWidget = Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(prefix, style: style),
+            Expanded(
+              child: RichText(
+                text: TextSpan(
+                  children: _parseInlineStyles(content),
+                  style: style,
+                ),
+              ),
+            ),
+          ],
+        );
+      } else {
+        lineWidget = RichText(
+          text: TextSpan(
+            children: _parseInlineStyles(content),
+            style: style,
+          ),
+        );
+      }
+
+      children.add(Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2.0),
+        child: lineWidget,
+      ));
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: children,
+    );
+  }
+
+  List<TextSpan> _parseInlineStyles(String text) {
+    final List<TextSpan> spans = [];
+    final pattern = RegExp(r'\*\*(.*?)\*\*');
+    int start = 0;
+
+    for (final match in pattern.allMatches(text)) {
+      if (match.start > start) {
+        spans.add(TextSpan(text: text.substring(start, match.start)));
+      }
+      spans.add(TextSpan(
+        text: match.group(1),
+        style: boldStyle,
+      ));
+      start = match.end;
+    }
+
+    if (start < text.length) {
+      spans.add(TextSpan(text: text.substring(start)));
+    }
+
+    return spans;
+  }
 }
