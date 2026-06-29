@@ -158,9 +158,21 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
                           IconButton(
                             key: _toggleKey,
                             onPressed: () => _toggleTheme(context),
-                            icon: Icon(
-                              isDark ? Icons.light_mode : Icons.dark_mode,
-                              color: theme.primaryColor,
+                            icon: AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 400),
+                              transitionBuilder: (child, animation) {
+                                return RotationTransition(
+                                  turns: animation,
+                                  child: FadeTransition(
+                                    opacity: animation,
+                                    child: ScaleTransition(
+                                      scale: animation,
+                                      child: child,
+                                    ),
+                                  ),
+                                );
+                              },
+                              child: _buildThemeIcon(isDark, theme),
                             ),
                             tooltip: "Toggle Theme",
                           ),
@@ -251,6 +263,70 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
         ),
       ),
     );
+  }
+
+  Widget _buildThemeIcon(bool isDark, ThemeData theme) {
+    if (isDark) {
+      return Stack(
+        key: const ValueKey('dark_theme_icon'),
+        clipBehavior: Clip.none,
+        children: [
+          Icon(
+            Icons.nights_stay,
+            color: theme.primaryColor,
+            size: 22,
+          ),
+          Positioned(
+            top: -2,
+            right: -2,
+            child: Icon(
+              Icons.star,
+              color: Colors.amberAccent.withValues(alpha: 0.8),
+              size: 8,
+            ),
+          ),
+          Positioned(
+            bottom: 2,
+            left: -4,
+            child: Icon(
+              Icons.star,
+              color: Colors.amberAccent.withValues(alpha: 0.6),
+              size: 6,
+            ),
+          ),
+        ],
+      );
+    } else {
+      return Stack(
+        key: const ValueKey('light_theme_icon'),
+        clipBehavior: Clip.none,
+        children: [
+          Icon(
+            Icons.wb_sunny,
+            color: Colors.orange.shade600,
+            size: 22,
+          ),
+          Positioned(
+            bottom: -3,
+            right: -4,
+            child: Icon(
+              Icons.cloud,
+              color: Colors.blueGrey.shade100.withValues(alpha: 0.9),
+              size: 12,
+            ),
+          ),
+          Positioned(
+            bottom: 2,
+            left: -3,
+            child: Icon(
+              Icons.cloud_queue,
+              color: Colors.blueGrey.shade200.withValues(alpha: 0.7),
+              size: 8,
+            ),
+          ),
+        ],
+      );
+    }
   }
 }
 
