@@ -1,0 +1,16 @@
+{
+  "projects": {
+    "default": "narygym",
+    "portfolio": "narychats"
+  },
+  "targets": {
+    "narychats": {
+      "hosting": {
+        "site_alias": [
+          "naresh-portfolio-sde"
+        ]
+      }
+    }
+  },
+  "etags": {}
+}

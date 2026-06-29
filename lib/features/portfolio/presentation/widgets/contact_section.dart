@@ -151,7 +151,7 @@ class _ContactSectionState extends State<ContactSection> {
             const Divider(),
             const SizedBox(height: 24),
             Text(
-              "© ${DateTime.now().year} R M Naresh Kumar. Built with Flutter Web.",
+              "© ${DateTime.now().year} R M Naresh Kumar. Built with Love ❤️? Hate 💀? Probably Passion 🪄",
               textAlign: TextAlign.center,
               style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
             ),
@@ -231,7 +231,7 @@ class _ContactSectionState extends State<ContactSection> {
           isDark,
           Icons.link_outlined,
           "LinkedIn",
-          "naresh25",
+          "Naresh Kumar",
           nareshPortfolioData.linkedinUrl,
         ),
       ],

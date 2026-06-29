@@ -1,0 +1,19 @@
+{
+  "hosting": [
+    {
+      "public": "build/web",
+      "target": "site_alias",
+      "ignore": [
+        "firebase.json",
+        "**/.*",
+        "**/node_modules/**"
+      ],
+      "rewrites": [
+        {
+          "source": "**",
+          "destination": "/index.html"
+        }
+      ]
+    }
+  ]
+}

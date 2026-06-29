@@ -236,7 +236,6 @@ const PortfolioData nareshPortfolioData = PortfolioData(
       skillList: [
         "Git",
         "CI/CD Pipelines",
-        "Automated Testing",
         "VAPT Remediation",
         "OOPs",
         "MVVM",
@@ -260,7 +259,6 @@ const PortfolioData nareshPortfolioData = PortfolioData(
       period: "Jun 2024 – Present",
       bulletPoints: [
         "Architected secure, scalable Flutter apps across 5+ mobile products; remediated VAPT vulnerabilities for a fintech application.",
-        "Mentored junior developers, conducted PR reviews, and collaborated with cross-functional teams to deliver production-ready features.",
         "Conducted on-device LLM PoCs using MediaPipe and LiteRT LM, benchmarking latency and feasibility vs. cloud-hosted models.",
         "Bridged native platform capabilities into Flutter via Method Channels, including payment gateways and third-party SDK embedding (Android/iOS).",
         "Optimized network layers with Hive-backed interceptor caching, reducing average load times by 30–40%.",
@@ -269,7 +267,8 @@ const PortfolioData nareshPortfolioData = PortfolioData(
         "Authored reusable CI/CD pipelines with Gradle/CocoaPods/Flutter caching, cutting build times by ~30%.",
         "Maintained 80–90% unit and widget test coverage; analyzed and resolved ANRs/crashes to secure production stability.",
         "Extended application delivery to Flutter Web with dynamic, responsive UX design matched to mobile interfaces.",
-        "Managed Play Store and App Store deployment pipelines, integrated deep linking, and automated workflows to accelerate delivery.",
+        "Mentored junior developers, conducted PR reviews, and collaborated with cross-functional teams to deliver production-ready features.",
+        "Managed Play Store and App Store releases, integrated deep linking, and automated workflows to accelerate delivery.",
       ],
     ),
     ExperienceItem(
