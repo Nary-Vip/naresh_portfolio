@@ -3,10 +3,6 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 String get web3FormsAccessKey =>
     dotenv.env['WEB3FORMS_ACCESS_KEY'] ?? 'YOUR_ACCESS_KEY_HERE';
 
-
-String get geminiApiKey =>
-    dotenv.env['GEMINI_API_KEY'] ?? '';
-
 class ImpactMetric {
   final String value;
   final String label;

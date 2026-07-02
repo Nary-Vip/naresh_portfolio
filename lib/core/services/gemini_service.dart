@@ -6,7 +6,9 @@ import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../utils/portfolio_data.dart';
 
 class GeminiService {
-  static const String _model = 'gemini-2.5-flash-lite';
+
+  static const String _proxyBaseUrl =
+      'https://naresh-gemini-proxy.nary-vip.workers.dev';
   static String? _cachedResumeText;
 
   /// Loads and extracts text from resume.pdf. Caches the result in memory.
@@ -31,13 +33,10 @@ class GeminiService {
     }
   }
 
-  /// Sends the chat history to Google AI Studio Gemini API and returns the assistant's reply.
-  /// If the API key is missing or the request fails, returns null (caller should fallback).
   static Future<String?> getChatResponse(
     List<Map<String, String>> messages,
   ) async {
-    final apiKey = geminiApiKey;
-    if (apiKey.isEmpty) {
+    if (_proxyBaseUrl.isEmpty) {
       return null;
     }
 
@@ -60,8 +59,7 @@ class GeminiService {
         };
       }).toList();
 
-      final endpoint =
-          'https://generativelanguage.googleapis.com/v1beta/models/$_model:generateContent?key=$apiKey';
+      final endpoint = '$_proxyBaseUrl/generate';
 
       final response = await http
           .post(
@@ -102,12 +100,11 @@ class GeminiService {
     }
   }
 
-  /// Sends the chat history to Google AI Studio Gemini API and streams the assistant's reply chunk-by-chunk.
+  /// Sends the chat history to the Gemini proxy worker and streams the assistant's reply chunk-by-chunk.
   static Stream<String> getChatResponseStream(
     List<Map<String, String>> messages,
   ) async* {
-    final apiKey = geminiApiKey;
-    if (apiKey.isEmpty) {
+    if (_proxyBaseUrl.isEmpty) {
       yield '';
       return;
     }
@@ -126,8 +123,7 @@ class GeminiService {
         };
       }).toList();
 
-      final endpoint =
-          'https://generativelanguage.googleapis.com/v1beta/models/$_model:streamGenerateContent?alt=sse&key=$apiKey';
+      final endpoint = '$_proxyBaseUrl/stream';
 
       final client = http.Client();
       final request = http.Request('POST', Uri.parse(endpoint))
