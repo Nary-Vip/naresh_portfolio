@@ -1,0 +1,14 @@
+{
+  "name": "naresh-gemini-proxy",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Cloudflare Worker proxy that keeps the Gemini API key off the client for the portfolio chatbot.",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "tail": "wrangler tail"
+  },
+  "devDependencies": {
+    "wrangler": "^4.0.0"
+  }
+}
