@@ -52,7 +52,6 @@ class _MyAppState extends State<MyApp> {
           return MaterialApp(
             title: 'Naresh Kumar - SDE Portfolio',
             debugShowCheckedModeBanner: false,
-            showPerformanceOverlay: true,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: _themeProvider.themeMode,
