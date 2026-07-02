@@ -1,22 +1,3 @@
-// Cloudflare Worker: thin proxy in front of the Google Gemini API.
-//
-// Why this exists: a Flutter Web app runs entirely in the visitor's browser, so
-// any API key it holds is downloadable by anyone. This Worker keeps the Gemini
-// key server-side. The browser calls THIS worker (no key); the worker injects the
-// secret key and forwards to Google.
-//
-// The Flutter app builds the full Gemini request body itself (contents +
-// systemInstruction + generationConfig) and POSTs it here verbatim. This worker
-// does not parse or modify the body — it only adds the model + key and forwards.
-//
-// Routes:
-//   POST /generate  -> Gemini generateContent        (returns JSON)
-//   POST /stream    -> Gemini streamGenerateContent   (streams SSE straight through)
-//   OPTIONS *       -> CORS preflight
-//
-// Protection: rejects cross-site browser requests (Origin allowlist) and caps
-// requests per visitor IP (RATE_LIMITER binding). See wrangler.toml.
-
 const MODEL = "gemini-2.5-flash-lite";
 const GEMINI_BASE = "https://generativelanguage.googleapis.com/v1beta/models";
 
@@ -25,8 +6,6 @@ export default {
     const origin = request.headers.get("Origin") || "";
     const allowed = isAllowedOrigin(origin, env);
 
-    // CORS preflight — browsers send this before the POST because we use
-    // Content-Type: application/json (a "non-simple" request).
     if (request.method === "OPTIONS") {
       return new Response(null, {
         status: allowed ? 204 : 403,
@@ -38,10 +17,6 @@ export default {
       return json({ error: "Method not allowed" }, 405, origin, allowed);
     }
 
-    // Origin allowlist. A real browser cannot lie about its Origin, so this
-    // blocks other websites from embedding your chatbot on your quota. It does
-    // NOT stop non-browser clients (curl can send any Origin) — the per-IP rate
-    // limit below is the backstop for that.
     if (!allowed) {
       return json({ error: "Forbidden origin" }, 403, origin, allowed);
     }
@@ -67,9 +42,6 @@ export default {
       }
     }
 
-    // Forward the body verbatim to Gemini. The secret key goes in the
-    // x-goog-api-key header rather than the query string, so it can't leak into
-    // upstream access logs.
     const upstreamUrl = stream
       ? `${GEMINI_BASE}/${MODEL}:streamGenerateContent?alt=sse`
       : `${GEMINI_BASE}/${MODEL}:generateContent`;
@@ -88,8 +60,6 @@ export default {
       return json({ error: "Upstream request failed" }, 502, origin, allowed);
     }
 
-    // Pass the response (JSON or SSE stream) straight back, adding CORS headers.
-    // Returning geminiResp.body preserves streaming token-by-token.
     const headers = corsHeaders(origin, allowed);
     const contentType = geminiResp.headers.get("Content-Type");
     if (contentType) headers.set("Content-Type", contentType);
@@ -110,9 +80,6 @@ function isAllowedOrigin(origin, env) {
     .filter(Boolean);
   if (list.includes(origin)) return true;
 
-  // Allow local development (`flutter run -d chrome` / `wrangler dev`) on any
-  // port. Remove these two lines if you want to forbid local access to the
-  // deployed worker.
   if (/^http:\/\/localhost(:\d+)?$/.test(origin)) return true;
   if (/^http:\/\/127\.0\.0\.1(:\d+)?$/.test(origin)) return true;
 
