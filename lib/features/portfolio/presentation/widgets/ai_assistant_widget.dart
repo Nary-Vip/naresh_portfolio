@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../../../core/services/gemini_service.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/portfolio_data.dart';
 
 class AiAssistantWidget extends StatefulWidget {
@@ -373,19 +374,23 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
             MarkdownText(
               text: msg.text,
               style: TextStyle(
+                fontFamily: AppTheme.fontFamily,
+                fontFamilyFallback: AppTheme.fontFallback,
                 color: msg.isUser
                     ? Colors.white
                     : (isDark ? Colors.white70 : Colors.black87),
                 fontSize: 13,
-                height: 1.4,
+                height: 1.55,
               ),
               boldStyle: TextStyle(
+                fontFamily: AppTheme.fontFamily,
+                fontFamilyFallback: AppTheme.fontFallback,
                 color: msg.isUser
                     ? Colors.white
                     : (isDark ? Colors.white : Colors.black),
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
-                height: 1.4,
+                height: 1.55,
               ),
             ),
             if (msg.isIncomplete) _buildIncompleteTag(isDark),
@@ -615,7 +620,7 @@ class MarkdownText extends StatelessWidget {
       }
 
       children.add(Padding(
-        padding: const EdgeInsets.symmetric(vertical: 2.0),
+        padding: const EdgeInsets.symmetric(vertical: 3.5),
         child: lineWidget,
       ));
     }

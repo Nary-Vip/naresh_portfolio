@@ -1,7 +1,41 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
+  /// Primary typeface, bundled under assets/fonts (no runtime download).
+  static const String fontFamily = 'PlusJakartaSans';
+
+  /// Bundled color-emoji font, used as a global fallback so emoji render
+  /// anywhere text does — CanvasKit has no system fonts to fall back to.
+  static const List<String> fontFallback = <String>['NotoColorEmoji'];
+
+  static TextStyle _text(
+    Color color,
+    double size,
+    FontWeight weight, {
+    double? letterSpacing,
+    double? height,
+  }) {
+    return TextStyle(
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFallback,
+      color: color,
+      fontSize: size,
+      fontWeight: weight,
+      letterSpacing: letterSpacing,
+      height: height,
+    );
+  }
+
+  static TextTheme _textTheme(Color text, Color muted) {
+    return TextTheme(
+      displayLarge: _text(text, 64, FontWeight.bold, letterSpacing: -1.5),
+      displayMedium: _text(text, 48, FontWeight.bold, letterSpacing: -0.5),
+      titleLarge: _text(text, 24, FontWeight.w600),
+      titleMedium: _text(text, 18, FontWeight.w600),
+      bodyLarge: _text(text, 16, FontWeight.normal, height: 1.6),
+      bodyMedium: _text(muted, 14, FontWeight.normal, height: 1.5),
+    );
+  }
   // Light Theme Colors
   static const Color lightBg = Color(0xFFF9FAFB);
   static const Color lightSurface = Colors.white;
@@ -34,42 +68,9 @@ class AppTheme {
         surface: lightSurface,
         error: Colors.redAccent,
       ),
-      textTheme: GoogleFonts.outfitTextTheme().copyWith(
-        displayLarge: GoogleFonts.outfit(
-          color: lightText,
-          fontSize: 64,
-          fontWeight: FontWeight.bold,
-          letterSpacing: -1.5,
-        ),
-        displayMedium: GoogleFonts.outfit(
-          color: lightText,
-          fontSize: 48,
-          fontWeight: FontWeight.bold,
-          letterSpacing: -0.5,
-        ),
-        titleLarge: GoogleFonts.outfit(
-          color: lightText,
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-        ),
-        titleMedium: GoogleFonts.outfit(
-          color: lightText,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
-        bodyLarge: GoogleFonts.inter(
-          color: lightText,
-          fontSize: 16,
-          fontWeight: FontWeight.normal,
-          height: 1.6,
-        ),
-        bodyMedium: GoogleFonts.inter(
-          color: lightTextMuted,
-          fontSize: 14,
-          fontWeight: FontWeight.normal,
-          height: 1.5,
-        ),
-      ),
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFallback,
+      textTheme: _textTheme(lightText, lightTextMuted),
       cardTheme: CardThemeData(
         color: lightSurface,
         elevation: 0,
@@ -93,42 +94,9 @@ class AppTheme {
         surface: darkSurface,
         error: Colors.redAccent,
       ),
-      textTheme: GoogleFonts.outfitTextTheme().copyWith(
-        displayLarge: GoogleFonts.outfit(
-          color: darkText,
-          fontSize: 64,
-          fontWeight: FontWeight.bold,
-          letterSpacing: -1.5,
-        ),
-        displayMedium: GoogleFonts.outfit(
-          color: darkText,
-          fontSize: 48,
-          fontWeight: FontWeight.bold,
-          letterSpacing: -0.5,
-        ),
-        titleLarge: GoogleFonts.outfit(
-          color: darkText,
-          fontSize: 24,
-          fontWeight: FontWeight.w600,
-        ),
-        titleMedium: GoogleFonts.outfit(
-          color: darkText,
-          fontSize: 18,
-          fontWeight: FontWeight.w600,
-        ),
-        bodyLarge: GoogleFonts.inter(
-          color: darkText,
-          fontSize: 16,
-          fontWeight: FontWeight.normal,
-          height: 1.6,
-        ),
-        bodyMedium: GoogleFonts.inter(
-          color: darkTextMuted,
-          fontSize: 14,
-          fontWeight: FontWeight.normal,
-          height: 1.5,
-        ),
-      ),
+      fontFamily: fontFamily,
+      fontFamilyFallback: fontFallback,
+      textTheme: _textTheme(darkText, darkTextMuted),
       cardTheme: CardThemeData(
         color: darkSurface,
         elevation: 0,

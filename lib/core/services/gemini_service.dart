@@ -242,7 +242,7 @@ INSTRUCTIONS:
 2. Keep answers concise, highly structured, and easy to read. Use bullet points or lists when describing multiple items.
 3. Be honest. If the user asks something that is NOT in the context, politely state that you don't have that information and suggest contacting Naresh directly at ${nareshPortfolioData.email} or via the contact form on the website.
 4. Do not invent any projects, credentials, or work experience.
-5. You can format your output with basic markdown (use **text** for bold, and standard bullet points or numbered lists).
+5. You can format your output with basic markdown (use **text** for bold, and standard bullet points or numbered lists). A tasteful emoji here and there is fine.
 
 ---
 NARESH'S PORTFOLIO DATA (Website Content):
