@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:typed_data';
+import 'package:flutter/foundation.dart' show debugPrint;
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
@@ -28,7 +29,7 @@ class GeminiService {
       _cachedResumeText = text.trim();
       return _cachedResumeText!;
     } catch (e) {
-      // Fallback/log error
+      debugPrint('GeminiService: resume.pdf extraction failed: $e');
       return '';
     }
   }
@@ -93,9 +94,13 @@ class GeminiService {
           }
         }
       }
+      debugPrint(
+        'GeminiService: proxy /generate returned ${response.statusCode}: '
+        '${response.body}',
+      );
       return null;
     } catch (e) {
-      // Return null to trigger local fallback
+      debugPrint('GeminiService: /generate request failed: $e');
       return null;
     }
   }
@@ -151,6 +156,12 @@ class GeminiService {
             if (jsonStr.isEmpty) continue;
             try {
               final decoded = jsonDecode(jsonStr);
+              if (decoded is Map && decoded['error'] != null) {
+                debugPrint(
+                  'GeminiService: stream error frame: ${decoded['error']}',
+                );
+                continue;
+              }
               final candidates = decoded['candidates'] as List?;
               if (candidates != null && candidates.isNotEmpty) {
                 final content = candidates[0]['content'];
@@ -170,10 +181,16 @@ class GeminiService {
           }
         }
       } else {
+        final body = await streamedResponse.stream.bytesToString();
+        debugPrint(
+          'GeminiService: proxy /stream returned '
+          '${streamedResponse.statusCode}: $body',
+        );
         yield '';
       }
       client.close();
     } catch (e) {
+      debugPrint('GeminiService: /stream request failed: $e');
       yield '';
     }
   }

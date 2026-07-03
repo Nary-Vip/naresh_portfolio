@@ -101,12 +101,16 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
         _scrollToBottom();
       },
       onError: (err) {
+        debugPrint('AiAssistant: chat stream error: $err');
         subscription?.cancel();
         _handleFallback(userText, assistantMessage);
       },
       onDone: () {
         subscription?.cancel();
         if (!hasReceivedData) {
+          debugPrint(
+            'AiAssistant: stream completed with no data — using offline fallback',
+          );
           _handleFallback(userText, assistantMessage);
         }
       },
@@ -122,10 +126,16 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
       if (assistantMessage != null) {
         final index = _messages.indexOf(assistantMessage);
         if (index != -1) {
-          _messages[index] = ChatMessage(text: fallbackReply, isUser: false);
+          _messages[index] = ChatMessage(
+            text: fallbackReply,
+            isUser: false,
+            isFallback: true,
+          );
         }
       } else {
-        _messages.add(ChatMessage(text: fallbackReply, isUser: false));
+        _messages.add(
+          ChatMessage(text: fallbackReply, isUser: false, isFallback: true),
+        );
       }
     });
     _scrollToBottom();
@@ -333,24 +343,55 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
             bottomRight: Radius.circular(msg.isUser ? 0 : 12),
           ),
         ),
-        child: MarkdownText(
-          text: msg.text,
-          style: TextStyle(
-            color: msg.isUser
-                ? Colors.white
-                : (isDark ? Colors.white70 : Colors.black87),
-            fontSize: 13,
-            height: 1.4,
-          ),
-          boldStyle: TextStyle(
-            color: msg.isUser
-                ? Colors.white
-                : (isDark ? Colors.white : Colors.black),
-            fontWeight: FontWeight.bold,
-            fontSize: 13,
-            height: 1.4,
-          ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (msg.isFallback) _buildOfflineTag(isDark),
+            MarkdownText(
+              text: msg.text,
+              style: TextStyle(
+                color: msg.isUser
+                    ? Colors.white
+                    : (isDark ? Colors.white70 : Colors.black87),
+                fontSize: 13,
+                height: 1.4,
+              ),
+              boldStyle: TextStyle(
+                color: msg.isUser
+                    ? Colors.white
+                    : (isDark ? Colors.white : Colors.black),
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+                height: 1.4,
+              ),
+            ),
+          ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildOfflineTag(bool isDark) {
+    final color = isDark ? Colors.amber.shade300 : Colors.orange.shade800;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.cloud_off_rounded, size: 13, color: color),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              "Offline mode · limited answer",
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -439,7 +480,13 @@ class ChatMessage {
   final String text;
   final bool isUser;
 
-  const ChatMessage({required this.text, required this.isUser});
+ final bool isFallback;
+
+  const ChatMessage({
+    required this.text,
+    required this.isUser,
+    this.isFallback = false,
+  });
 }
 
 class MarkdownText extends StatelessWidget {
