@@ -76,7 +76,7 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
             })
         .toList();
 
-    ChatMessage? assistantMessage;
+    int assistantIndex = -1;
     StreamSubscription<String>? subscription;
     bool hasReceivedData = false;
 
@@ -88,29 +88,27 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
 
         setState(() {
           _isTyping = false;
-          if (assistantMessage == null) {
-            assistantMessage = ChatMessage(text: chunk, isUser: false);
-            _messages.add(assistantMessage!);
+          if (assistantIndex == -1) {
+            _messages.add(ChatMessage(text: chunk, isUser: false));
+            assistantIndex = _messages.length - 1;
           } else {
-            final updatedText = assistantMessage!.text + chunk;
-            final index = _messages.indexOf(assistantMessage!);
-            if (index != -1) {
-              assistantMessage = ChatMessage(text: updatedText, isUser: false);
-              _messages[index] = assistantMessage!;
-            }
+            final current = _messages[assistantIndex];
+            _messages[assistantIndex] = ChatMessage(
+              text: current.text + chunk,
+              isUser: false,
+            );
           }
         });
         _scrollToBottom();
       },
       onError: (err) {
         subscription?.cancel();
-        final partial = assistantMessage;
-        if (err is GeminiIncompleteException && partial != null) {
-          debugPrint('AiAssistant: respo\nse incomplete (${err.reason})');
-          _markIncomplete(partial);
+        if (err is GeminiIncompleteException && assistantIndex != -1) {
+          debugPrint('AiAssistant: response incomplete (${err.reason})');
+          _markIncomplete(assistantIndex);
         } else {
           debugPrint('AiAssistant: chat stream error: $err');
-          _handleFallback(userText, assistantMessage);
+          _handleFallback(userText, assistantIndex);
         }
       },
       onDone: () {
@@ -119,21 +117,19 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
           debugPrint(
             'AiAssistant: stream completed with no data — using offline fallback',
           );
-          _handleFallback(userText, assistantMessage);
+          _handleFallback(userText, assistantIndex);
         }
       },
       cancelOnError: true,
     );
   }
 
-  void _markIncomplete(ChatMessage assistantMessage) {
-    if (!mounted) return;
-    final index = _messages.indexOf(assistantMessage);
-    if (index == -1) return;
+  void _markIncomplete(int index) {
+    if (!mounted || index < 0 || index >= _messages.length) return;
     setState(() {
       _isTyping = false;
       _messages[index] = ChatMessage(
-        text: assistantMessage.text,
+        text: _messages[index].text,
         isUser: false,
         isIncomplete: true,
       );
@@ -141,20 +137,17 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
     _scrollToBottom();
   }
 
-  void _handleFallback(String userText, ChatMessage? assistantMessage) {
+  void _handleFallback(String userText, int assistantIndex) {
     if (!mounted) return;
     setState(() {
       _isTyping = false;
       final fallbackReply = _generateAiReply(userText);
-      if (assistantMessage != null) {
-        final index = _messages.indexOf(assistantMessage);
-        if (index != -1) {
-          _messages[index] = ChatMessage(
-            text: fallbackReply,
-            isUser: false,
-            isFallback: true,
-          );
-        }
+      if (assistantIndex >= 0 && assistantIndex < _messages.length) {
+        _messages[assistantIndex] = ChatMessage(
+          text: fallbackReply,
+          isUser: false,
+          isFallback: true,
+        );
       } else {
         _messages.add(
           ChatMessage(text: fallbackReply, isUser: false, isFallback: true),
@@ -290,14 +283,15 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
             child: Container(
               color: isDark ? const Color(0xFF0A0A0A) : Colors.grey.shade50,
               padding: const EdgeInsets.all(12),
-              child: ListView(
+              child: ListView.builder(
                 controller: _scrollController,
-                children: [
-                  ..._messages.map(
-                    (msg) => _buildMessageBubble(theme, isDark, msg),
-                  ),
-                  if (_isTyping) _buildTypingIndicator(theme, isDark),
-                ],
+                itemCount: _messages.length + (_isTyping ? 1 : 0),
+                itemBuilder: (context, index) {
+                  if (index >= _messages.length) {
+                    return _buildTypingIndicator(theme, isDark);
+                  }
+                  return _buildMessageBubble(theme, isDark, _messages[index]);
+                },
               ),
             ),
           ),
@@ -544,7 +538,7 @@ class ChatMessage {
   });
 }
 
-class MarkdownText extends StatelessWidget {
+class MarkdownText extends StatefulWidget {
   final String text;
   final TextStyle style;
   final TextStyle boldStyle;
@@ -557,8 +551,38 @@ class MarkdownText extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    final lines = text.split('\n');
+  State<MarkdownText> createState() => _MarkdownTextState();
+}
+
+class _MarkdownTextState extends State<MarkdownText> {
+  // Compiled once, not per line.
+  static final RegExp _numberedPattern = RegExp(r'^\d+\.\s');
+  static final RegExp _boldPattern = RegExp(r'\*\*(.*?)\*\*');
+
+  // The parsed line widgets are cached and only rebuilt when the text or styles
+  // change. During streaming, only the growing bubble's text changes, so every
+  // other (finalized) bubble reuses its cache instead of re-running the regex.
+  late List<Widget> _lines;
+
+  @override
+  void initState() {
+    super.initState();
+    _lines = _parse();
+  }
+
+  @override
+  void didUpdateWidget(MarkdownText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.text != widget.text ||
+        oldWidget.style != widget.style ||
+        oldWidget.boldStyle != widget.boldStyle) {
+      _lines = _parse();
+    }
+  }
+
+  List<Widget> _parse() {
+    final style = widget.style;
+    final lines = widget.text.split('\n');
     final List<Widget> children = [];
 
     for (final line in lines) {
@@ -571,7 +595,7 @@ class MarkdownText extends StatelessWidget {
       final isBullet = trimmed.startsWith('- ') ||
           trimmed.startsWith('* ') ||
           trimmed.startsWith('• ');
-      final isNumbered = RegExp(r'^\d+\.\s').hasMatch(trimmed);
+      final isNumbered = _numberedPattern.hasMatch(trimmed);
 
       String content = line;
       Widget lineWidget;
@@ -625,26 +649,18 @@ class MarkdownText extends StatelessWidget {
       ));
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
-      children: children,
-    );
+    return children;
   }
 
   List<TextSpan> _parseInlineStyles(String text) {
     final List<TextSpan> spans = [];
-    final pattern = RegExp(r'\*\*(.*?)\*\*');
     int start = 0;
 
-    for (final match in pattern.allMatches(text)) {
+    for (final match in _boldPattern.allMatches(text)) {
       if (match.start > start) {
         spans.add(TextSpan(text: text.substring(start, match.start)));
       }
-      spans.add(TextSpan(
-        text: match.group(1),
-        style: boldStyle,
-      ));
+      spans.add(TextSpan(text: match.group(1), style: widget.boldStyle));
       start = match.end;
     }
 
@@ -653,5 +669,14 @@ class MarkdownText extends StatelessWidget {
     }
 
     return spans;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
+      children: _lines,
+    );
   }
 }
