@@ -1,13 +1,21 @@
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 
+const String _web3FormsPlaceholderKey = 'YOUR_ACCESS_KEY_HERE';
+
 String get web3FormsAccessKey =>
-    dotenv.env['WEB3FORMS_ACCESS_KEY'] ?? 'YOUR_ACCESS_KEY_HERE';
+    dotenv.env['WEB3FORMS_ACCESS_KEY'] ?? _web3FormsPlaceholderKey;
+
+
+bool get isWeb3FormsConfigured {
+  final key = dotenv.env['WEB3FORMS_ACCESS_KEY'];
+  return key != null && key.isNotEmpty && key != _web3FormsPlaceholderKey;
+}
 
 class ImpactMetric {
   final String value;
   final String label;
   final String description;
-  final String iconName; // e.g. 'work_outline', 'rocket_launch_outlined', 'speed_outlined', 'security_outlined', 'sync_outlined'
+  final String iconName; 
 
   const ImpactMetric({
     required this.value,

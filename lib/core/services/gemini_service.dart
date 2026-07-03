@@ -14,6 +14,15 @@ class GeminiIncompleteException implements Exception {
   String toString() => 'GeminiIncompleteException($reason)';
 }
 
+class GeminiHttpException implements Exception {
+  final int statusCode;
+  final String body;
+  const GeminiHttpException(this.statusCode, this.body);
+
+  @override
+  String toString() => 'GeminiHttpException($statusCode): $body';
+}
+
 class GeminiService {
 
   static const String _proxyBaseUrl =
@@ -86,26 +95,27 @@ class GeminiService {
           )
           .timeout(const Duration(seconds: 15));
 
-      if (response.statusCode == 200) {
-        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
-        final candidates = decoded['candidates'] as List?;
-        if (candidates != null && candidates.isNotEmpty) {
-          final content = candidates[0]['content'];
-          if (content != null) {
-            final parts = content['parts'] as List?;
-            if (parts != null && parts.isNotEmpty) {
-              final reply = parts[0]['text'] as String?;
-              if (reply != null && reply.trim().isNotEmpty) {
-                return reply.trim();
-              }
+      if (response.statusCode != 200) {
+        throw GeminiHttpException(
+          response.statusCode,
+          _truncate(response.body),
+        );
+      }
+
+      final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+      final candidates = decoded['candidates'] as List?;
+      if (candidates != null && candidates.isNotEmpty) {
+        final content = candidates[0]['content'];
+        if (content != null) {
+          final parts = content['parts'] as List?;
+          if (parts != null && parts.isNotEmpty) {
+            final reply = parts[0]['text'] as String?;
+            if (reply != null && reply.trim().isNotEmpty) {
+              return reply.trim();
             }
           }
         }
       }
-      debugPrint(
-        'GeminiService: proxy /generate returned ${response.statusCode}: '
-        '${response.body}',
-      );
       return null;
     } catch (e) {
       debugPrint('GeminiService: /generate request failed: $e');
@@ -157,12 +167,7 @@ class GeminiService {
 
       if (streamedResponse.statusCode != 200) {
         final body = await streamedResponse.stream.bytesToString();
-        debugPrint(
-          'GeminiService: proxy /stream returned '
-          '${streamedResponse.statusCode}: $body',
-        );
-        yield '';
-        return;
+        throw GeminiHttpException(streamedResponse.statusCode, _truncate(body));
       }
 
       String? finishReason;
@@ -220,6 +225,8 @@ class GeminiService {
       }
     } on GeminiIncompleteException {
       rethrow;
+    } on GeminiHttpException {
+      rethrow;
     } catch (e) {
       debugPrint('GeminiService: /stream request failed: $e');
       if (yieldedAny) {
@@ -231,6 +238,10 @@ class GeminiService {
       client.close();
     }
   }
+
+
+  static String _truncate(String body, [int max = 500]) =>
+      body.length <= max ? body : '${body.substring(0, max)}…';
 
   static String _buildSystemContext(String resumeText) {
     return '''

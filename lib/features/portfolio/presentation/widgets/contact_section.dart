@@ -31,6 +31,17 @@ class _ContactSectionState extends State<ContactSection> {
 
   Future<void> _submitForm() async {
     if (!_formKey.currentState!.validate()) return;
+    if (!isWeb3FormsConfigured) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            "The contact form isn't set up right now — please email me directly at ${nareshPortfolioData.email}.",
+          ),
+          backgroundColor: Colors.orange.shade800,
+        ),
+      );
+      return;
+    }
 
     setState(() {
       _isSubmitting = true;
@@ -81,7 +92,13 @@ class _ContactSectionState extends State<ContactSection> {
           throw Exception(jsonResponse['message'] ?? 'Failed to send message.');
         }
       } else {
-        throw Exception('Server returned status code: ${response.statusCode}');
+        // Preserve the server's explanation (Web3Forms returns a JSON
+        // `message` even on 4xx) instead of discarding it behind a bare code.
+        final serverMessage = _extractServerMessage(response.body);
+        throw Exception(
+          'Server returned ${response.statusCode}'
+          '${serverMessage != null ? ': $serverMessage' : ''}',
+        );
       }
     } catch (e) {
       if (!mounted) return;
@@ -98,6 +115,21 @@ class _ContactSectionState extends State<ContactSection> {
         });
       }
     }
+  }
+
+  /// Pulls a human-readable reason out of an error response body: the JSON
+  /// `message` field if present, otherwise a bounded slice of the raw body.
+  String? _extractServerMessage(String body) {
+    if (body.trim().isEmpty) return null;
+    try {
+      final decoded = jsonDecode(body);
+      if (decoded is Map && decoded['message'] is String) {
+        return decoded['message'] as String;
+      }
+    } catch (_) {
+      // Not JSON — fall through to the raw body below.
+    }
+    return body.length > 200 ? '${body.substring(0, 200)}…' : body;
   }
 
   Future<void> _launchUrl(String urlString) async {
