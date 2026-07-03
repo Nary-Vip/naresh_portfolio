@@ -58,14 +58,12 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
     return Scaffold(
       body: Stack(
         children: [
-          // Background subtle gradients
           Positioned.fill(
             child: Container(color: theme.scaffoldBackgroundColor),
           ),
           Positioned.fill(
             child: ThemeBackgroundWidget(isDark: isDark),
           ),
-          // Subtle glow decorations (dark mode orange blurs)
           if (isDark) ...[
             Positioned(
               top: -100,
@@ -92,69 +90,37 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
               ),
             ),
           ],
-
-          // Main Scrollable Area
           SelectionArea(
             child: SingleChildScrollView(
               controller: _scrollController,
               child: Column(
                 children: [
-                  // Space for the floating navbar
                   const SizedBox(height: 100),
-
-                  // Hero Section
                   HeroSection(
                     key: _heroKey,
                     onContactClick: () => _scrollToSection(_contactKey),
                   ),
-
-                  // Divider
                   _buildDivider(),
-
-                  // Impact Metrics Section
                   ImpactMetricsSection(key: _metricsKey),
-
-                  // Exploring Section
                   ExploringSection(),
-
                   _buildDivider(),
-
-                  // Skills Section
                   SkillsSection(key: _skillsKey),
-
                   _buildDivider(),
-
-                  // Experience Section
                   ExperienceSection(key: _experienceKey),
-
                   _buildDivider(),
-
-                  // Projects Section
                   ProjectsSection(key: _projectsKey),
-
                   _buildDivider(),
-
-                  // Education Section
                   const EducationSection(),
-
                   _buildDivider(),
-
-                  // Certifications Section
                   CertificationsSection(key: _certificationsKey),
-
                   _buildDivider(),
-
-                  // Contact Section
                   ContactSection(key: _contactKey),
-
-                  // Bottom Spacing
                   const SizedBox(height: 80),
                 ],
               ),
             ),
           ),
 
-          // Floating Glassmorphic Navigation Bar
           Positioned(
             top: 20,
             left: 0,
@@ -241,17 +207,6 @@ class _ThemeBackgroundWidgetState extends State<ThemeBackgroundWidget>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
-  // Pre-computed star data: [xFraction, yFraction, size, phaseOffset]
-  static final List<List<double>> _starData = List.generate(80, (i) {
-    final rng = Random(i * 42 + 7);
-    return [
-      rng.nextDouble(),       // x fraction
-      rng.nextDouble(),       // y fraction
-      1.5 + rng.nextDouble() * 2.0, // size 1.5 to 3.5
-      rng.nextDouble() * 2 * pi,    // phase offset
-    ];
-  });
-
   @override
   void initState() {
     super.initState();
@@ -269,173 +224,181 @@ class _ThemeBackgroundWidgetState extends State<ThemeBackgroundWidget>
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox.expand(
-      child: AnimatedBuilder(
-        animation: _controller,
-        builder: (context, _) {
-          return widget.isDark
-              ? _buildDarkSky(context)
-              : _buildLightSky(context);
-        },
+    return RepaintBoundary(
+      child: CustomPaint(
+        size: Size.infinite,
+        isComplex: true,
+        willChange: true,
+        painter: _SkyPainter(animation: _controller, isDark: widget.isDark),
       ),
     );
   }
+}
 
-  Widget _buildDarkSky(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-    final screenHeight = MediaQuery.of(context).size.height;
+final List<List<double>> _starData = List.generate(80, (i) {
+  final rng = Random(i * 42 + 7);
+  return [
+    rng.nextDouble(), // x fraction
+    rng.nextDouble(), // y fraction
+    1.5 + rng.nextDouble() * 2.0, // diameter 1.5 to 3.5
+    rng.nextDouble() * 2 * pi, // phase offset
+  ];
+});
 
-    return Stack(
-      children: [
-        // Twinkling Stars
-        for (int i = 0; i < _starData.length; i++)
-          Positioned(
-            left: _starData[i][0] * screenWidth,
-            top: _starData[i][1] * screenHeight,
-            child: _buildStar(i),
-          ),
+double _blurSigma(double radius) => radius * 0.57735 + 0.5;
 
-        // Crescent Moon
-        Positioned(
-          right: 80,
-          top: 100,
-          child: _buildMoon(),
-        ),
-      ],
+class _SkyPainter extends CustomPainter {
+  final Animation<double> animation;
+  final bool isDark;
+
+  _SkyPainter({required this.animation, required this.isDark})
+    : super(repaint: animation);
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (isDark) {
+      _paintNight(canvas, size);
+    } else {
+      _paintDay(canvas, size);
+    }
+  }
+
+  void _paintNight(Canvas canvas, Size size) {
+    final double t = animation.value;
+    final corePaint = Paint();
+    final glowPaint = Paint();
+
+    for (final s in _starData) {
+      final double dx = s[0] * size.width;
+      final double dy = s[1] * size.height;
+      final double diameter = s[2];
+      final double radius = diameter / 2;
+      final double phase = s[3];
+
+      // Twinkle: sin oscillates between 0 and 1 (30% to 80% opacity).
+      final double twinkle = (sin(t * 2 * pi + phase) + 1.0) / 2.0;
+      final double opacity = 0.3 + twinkle * 0.5;
+      final Offset center = Offset(dx, dy);
+
+      // Soft glow (mirrors the old BoxShadow: spread ~size*0.5, blur ~size*2).
+      glowPaint
+        ..color = Colors.white.withValues(alpha: opacity * 0.3)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, _blurSigma(diameter * 2));
+      canvas.drawCircle(center, radius + diameter * 0.5, glowPaint);
+
+      // Crisp star core.
+      corePaint.color = Colors.white.withValues(alpha: opacity);
+      canvas.drawCircle(center, radius, corePaint);
+    }
+
+    _paintMoon(canvas, size);
+  }
+
+  void _paintMoon(Canvas canvas, Size size) {
+    // Original layout: Positioned(right: 80, top: 100), 100x100 box.
+    final Offset center = Offset(size.width - 130, 150);
+
+    canvas.drawCircle(
+      center,
+      65,
+      Paint()
+        ..color = Colors.indigo.withValues(alpha: 0.25)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, _blurSigma(50)),
+    );
+    canvas.drawCircle(
+      center,
+      58,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.1)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, _blurSigma(30)),
+    );
+
+    _paintIcon(
+      canvas,
+      Icons.nightlight_round,
+      70,
+      Colors.white.withValues(alpha: 0.35),
+      Offset(center.dx - 35, center.dy - 35),
     );
   }
 
-  Widget _buildStar(int index) {
-    final data = _starData[index];
-    final double size = data[2];
-    final double phase = data[3];
+  void _paintDay(Canvas canvas, Size size) {
+    _paintSun(canvas, size);
 
-    // Twinkle: sin oscillates between 0 and 1
-    final double twinkle =
-        (sin(_controller.value * 2 * pi + phase) + 1.0) / 2.0;
-    final double opacity = 0.3 + twinkle * 0.5; // 30% to 80%
+    final double t = animation.value;
+    for (int i = 0; i < 5; i++) {
+      final double speed = 0.3 + (i * 0.12);
+      final double yPos = 80.0 + (i * 130.0);
+      final double cloudSize = 60.0 + (i % 3) * 20.0;
+      final double opacity = 0.12 + (i % 2) * 0.06; // 12% to 18%
 
-    return Container(
-      width: size,
-      height: size,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        color: Colors.white.withValues(alpha: opacity),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.white.withValues(alpha: opacity * 0.3),
-            blurRadius: size * 2,
-            spreadRadius: size * 0.5,
-          ),
-        ],
-      ),
-    );
+      final double progress = (t * speed + (i * 0.2)) % 1.0;
+      final double xPos = progress * (size.width + 200) - 100;
+
+      _paintIcon(
+        canvas,
+        Icons.cloud,
+        cloudSize,
+        Colors.blueGrey.shade300.withValues(alpha: opacity),
+        Offset(xPos, yPos),
+      );
+    }
   }
 
-  Widget _buildMoon() {
-    return SizedBox(
-      width: 100,
-      height: 100,
-      child: Stack(
-        children: [
-          // Moon glow
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.indigo.withValues(alpha: 0.25),
-                    blurRadius: 50,
-                    spreadRadius: 15,
-                  ),
-                  BoxShadow(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    blurRadius: 30,
-                    spreadRadius: 8,
-                  ),
-                ],
-              ),
-            ),
-          ),
-          // The crescent moon icon
-          Center(
-            child: Icon(
-              Icons.nightlight_round,
-              size: 70,
-              color: Colors.white.withValues(alpha: 0.35),
-            ),
-          ),
-        ],
-      ),
+  void _paintSun(Canvas canvas, Size size) {
+    // Original layout: Positioned(right: 60, top: 60), 150x150 box.
+    final Offset center = Offset(size.width - 135, 135);
+    const double radius = 75;
+
+    // Outer orange bloom (old BoxShadow: spread 30, blur 80).
+    canvas.drawCircle(
+      center,
+      radius + 30,
+      Paint()
+        ..color = Colors.orange.withValues(alpha: 0.15)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, _blurSigma(80)),
     );
-  }
 
-  Widget _buildLightSky(BuildContext context) {
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return Stack(
-      children: [
-        // Sun glow
-        Positioned(
-          right: 60,
-          top: 60,
-          child: _buildSun(),
-        ),
-
-        // Floating clouds at different heights
-        for (int i = 0; i < 5; i++)
-          _buildFloatingCloud(i, screenWidth),
-      ],
-    );
-  }
-
-  Widget _buildSun() {
-    return Container(
-      width: 150,
-      height: 150,
-      decoration: BoxDecoration(
-        shape: BoxShape.circle,
-        gradient: RadialGradient(
+    // Radial-gradient sun disc.
+    final Rect rect = Rect.fromCircle(center: center, radius: radius);
+    canvas.drawCircle(
+      center,
+      radius,
+      Paint()
+        ..shader = RadialGradient(
           colors: [
             Colors.orange.withValues(alpha: 0.25),
             Colors.amber.withValues(alpha: 0.12),
             Colors.transparent,
           ],
           stops: const [0.0, 0.5, 1.0],
+        ).createShader(rect),
+    );
+  }
+
+  void _paintIcon(
+    Canvas canvas,
+    IconData icon,
+    double size,
+    Color color,
+    Offset topLeft,
+  ) {
+    final builder = TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(icon.codePoint),
+        style: TextStyle(
+          fontSize: size,
+          fontFamily: icon.fontFamily,
+          package: icon.fontPackage,
+          color: color,
         ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.orange.withValues(alpha: 0.15),
-            blurRadius: 80,
-            spreadRadius: 30,
-          ),
-        ],
       ),
-    );
+      textDirection: TextDirection.ltr,
+    )..layout();
+    builder.paint(canvas, topLeft);
   }
 
-  Widget _buildFloatingCloud(int index, double screenWidth) {
-    // Each cloud drifts at a different speed and height
-    final double speed = 0.3 + (index * 0.12);
-    final double yPos = 80.0 + (index * 130.0);
-    final double cloudSize = 60.0 + (index % 3) * 20.0;
-    final double opacity = 0.12 + (index % 2) * 0.06; // 12% to 18%
-
-    // Progress: 0.0 → 1.0, loops
-    final double progress =
-        (_controller.value * speed + (index * 0.2)) % 1.0;
-    final double xPos = progress * (screenWidth + 200) - 100;
-
-    return Positioned(
-      left: xPos,
-      top: yPos,
-      child: Icon(
-        Icons.cloud,
-        size: cloudSize,
-        color: Colors.blueGrey.shade300.withValues(alpha: opacity),
-      ),
-    );
-  }
+  @override
+  bool shouldRepaint(_SkyPainter oldDelegate) => oldDelegate.isDark != isDark;
 }
 
