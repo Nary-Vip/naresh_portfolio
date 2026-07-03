@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/utils/portfolio_data.dart';
@@ -101,9 +102,27 @@ class _ContactSectionState extends State<ContactSection> {
 
   Future<void> _launchUrl(String urlString) async {
     final Uri url = Uri.parse(urlString);
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      debugPrint("Could not launch $urlString");
+    bool launched = false;
+    try {
+      launched = await launchUrl(url, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint("Could not launch $urlString: $e");
     }
+    if (launched || !mounted) return;
+    final String copyValue = urlString.replaceFirst(
+      RegExp(r'^(mailto:|tel:)'),
+      '',
+    );
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text("Couldn't open that link. Copy it instead?"),
+        action: SnackBarAction(
+          label: 'Copy',
+          onPressed: () =>
+              Clipboard.setData(ClipboardData(text: copyValue)),
+        ),
+      ),
+    );
   }
 
   @override
