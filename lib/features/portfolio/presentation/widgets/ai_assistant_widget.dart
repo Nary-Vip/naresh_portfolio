@@ -102,9 +102,15 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
         _scrollToBottom();
       },
       onError: (err) {
-        debugPrint('AiAssistant: chat stream error: $err');
         subscription?.cancel();
-        _handleFallback(userText, assistantMessage);
+        final partial = assistantMessage;
+        if (err is GeminiIncompleteException && partial != null) {
+          debugPrint('AiAssistant: respo\nse incomplete (${err.reason})');
+          _markIncomplete(partial);
+        } else {
+          debugPrint('AiAssistant: chat stream error: $err');
+          _handleFallback(userText, assistantMessage);
+        }
       },
       onDone: () {
         subscription?.cancel();
@@ -117,6 +123,21 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
       },
       cancelOnError: true,
     );
+  }
+
+  void _markIncomplete(ChatMessage assistantMessage) {
+    if (!mounted) return;
+    final index = _messages.indexOf(assistantMessage);
+    if (index == -1) return;
+    setState(() {
+      _isTyping = false;
+      _messages[index] = ChatMessage(
+        text: assistantMessage.text,
+        isUser: false,
+        isIncomplete: true,
+      );
+    });
+    _scrollToBottom();
   }
 
   void _handleFallback(String userText, ChatMessage? assistantMessage) {
@@ -367,6 +388,7 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
                 height: 1.4,
               ),
             ),
+            if (msg.isIncomplete) _buildIncompleteTag(isDark),
           ],
         ),
       ),
@@ -385,6 +407,30 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
           Flexible(
             child: Text(
               "Offline mode · limited answer",
+              style: TextStyle(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w600,
+                color: color,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildIncompleteTag(bool isDark) {
+    final color = isDark ? Colors.amber.shade300 : Colors.orange.shade800;
+    return Padding(
+      padding: const EdgeInsets.only(top: 6),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.info_outline_rounded, size: 13, color: color),
+          const SizedBox(width: 5),
+          Flexible(
+            child: Text(
+              "Response was cut off — ask me to continue",
               style: TextStyle(
                 fontSize: 10.5,
                 fontWeight: FontWeight.w600,
@@ -481,12 +527,15 @@ class ChatMessage {
   final String text;
   final bool isUser;
 
- final bool isFallback;
+  final bool isFallback;
+
+  final bool isIncomplete;
 
   const ChatMessage({
     required this.text,
     required this.isUser,
     this.isFallback = false,
+    this.isIncomplete = false,
   });
 }
 

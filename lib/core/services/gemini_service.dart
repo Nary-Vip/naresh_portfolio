@@ -6,6 +6,14 @@ import 'package:http/http.dart' as http;
 import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../utils/portfolio_data.dart';
 
+class GeminiIncompleteException implements Exception {
+  final String reason;
+  const GeminiIncompleteException(this.reason);
+
+  @override
+  String toString() => 'GeminiIncompleteException($reason)';
+}
+
 class GeminiService {
 
   static const String _proxyBaseUrl =
@@ -73,7 +81,7 @@ class GeminiService {
                   {'text': systemContext},
                 ],
               },
-              'generationConfig': {'temperature': 0.5, 'maxOutputTokens': 1000},
+              'generationConfig': {'temperature': 0.5, 'maxOutputTokens': 2048},
             }),
           )
           .timeout(const Duration(seconds: 15));
@@ -114,23 +122,24 @@ class GeminiService {
       return;
     }
 
+    final String resumeText = await _loadResumeFromPdf();
+    final String systemContext = _buildSystemContext(resumeText);
+
+    final List<Map<String, dynamic>> contents = messages.map((msg) {
+      final role = msg['role'] == 'user' ? 'user' : 'model';
+      return {
+        'role': role,
+        'parts': [
+          {'text': msg['content'] ?? ''},
+        ],
+      };
+    }).toList();
+
+    final endpoint = '$_proxyBaseUrl/stream';
+    final client = http.Client();
+    bool yieldedAny = false;
+
     try {
-      final String resumeText = await _loadResumeFromPdf();
-      final String systemContext = _buildSystemContext(resumeText);
-
-      final List<Map<String, dynamic>> contents = messages.map((msg) {
-        final role = msg['role'] == 'user' ? 'user' : 'model';
-        return {
-          'role': role,
-          'parts': [
-            {'text': msg['content'] ?? ''},
-          ],
-        };
-      }).toList();
-
-      final endpoint = '$_proxyBaseUrl/stream';
-
-      final client = http.Client();
       final request = http.Request('POST', Uri.parse(endpoint))
         ..headers['Content-Type'] = 'application/json'
         ..body = jsonEncode({
@@ -140,58 +149,86 @@ class GeminiService {
               {'text': systemContext},
             ],
           },
-          'generationConfig': {'temperature': 0.5, 'maxOutputTokens': 1000},
+          'generationConfig': {'temperature': 0.5, 'maxOutputTokens': 2048},
         });
 
-      final streamedResponse = await client.send(request);
+      final streamedResponse =
+          await client.send(request).timeout(const Duration(seconds: 20));
 
-      if (streamedResponse.statusCode == 200) {
-        final stream = streamedResponse.stream
-            .transform(utf8.decoder)
-            .transform(const LineSplitter());
-
-        await for (final line in stream) {
-          if (line.startsWith('data: ')) {
-            final jsonStr = line.substring(6).trim();
-            if (jsonStr.isEmpty) continue;
-            try {
-              final decoded = jsonDecode(jsonStr);
-              if (decoded is Map && decoded['error'] != null) {
-                debugPrint(
-                  'GeminiService: stream error frame: ${decoded['error']}',
-                );
-                continue;
-              }
-              final candidates = decoded['candidates'] as List?;
-              if (candidates != null && candidates.isNotEmpty) {
-                final content = candidates[0]['content'];
-                if (content != null) {
-                  final parts = content['parts'] as List?;
-                  if (parts != null && parts.isNotEmpty) {
-                    final text = parts[0]['text'] as String?;
-                    if (text != null && text.isNotEmpty) {
-                      yield text;
-                    }
-                  }
-                }
-              }
-            } catch (e) {
-              // Ignore partial JSON parsing errors
-            }
-          }
-        }
-      } else {
+      if (streamedResponse.statusCode != 200) {
         final body = await streamedResponse.stream.bytesToString();
         debugPrint(
           'GeminiService: proxy /stream returned '
           '${streamedResponse.statusCode}: $body',
         );
         yield '';
+        return;
       }
-      client.close();
+
+      String? finishReason;
+
+      // A gap of >30s between chunks means the connection is hung; abort so the
+      // "AI is typing…" state can't spin forever.
+      final lines = streamedResponse.stream
+          .transform(utf8.decoder)
+          .transform(const LineSplitter())
+          .timeout(const Duration(seconds: 30));
+
+      await for (final line in lines) {
+        if (!line.startsWith('data: ')) continue;
+        final jsonStr = line.substring(6).trim();
+        if (jsonStr.isEmpty) continue;
+
+        Map<String, dynamic>? decoded;
+        try {
+          final parsed = jsonDecode(jsonStr);
+          if (parsed is Map<String, dynamic>) decoded = parsed;
+        } catch (_) {
+          // Genuinely partial JSON across chunk boundaries — skip and continue.
+          continue;
+        }
+        if (decoded == null) continue;
+
+        if (decoded['error'] != null) {
+          debugPrint('GeminiService: stream error frame: ${decoded['error']}');
+          continue;
+        }
+
+        final candidates = decoded['candidates'] as List?;
+        if (candidates == null || candidates.isEmpty) continue;
+        final candidate = candidates[0];
+
+        // finishReason arrives on the final frame; STOP is the only clean end.
+        final fr = candidate['finishReason'];
+        if (fr is String) finishReason = fr;
+
+        final content = candidate['content'];
+        if (content != null) {
+          final parts = content['parts'] as List?;
+          if (parts != null && parts.isNotEmpty) {
+            final text = parts[0]['text'] as String?;
+            if (text != null && text.isNotEmpty) {
+              yieldedAny = true;
+              yield text;
+            }
+          }
+        }
+      }
+
+      if (yieldedAny && finishReason != 'STOP') {
+        throw GeminiIncompleteException(finishReason ?? 'INCOMPLETE');
+      }
+    } on GeminiIncompleteException {
+      rethrow;
     } catch (e) {
       debugPrint('GeminiService: /stream request failed: $e');
+      if (yieldedAny) {
+        // Failure after partial delivery: keep what we sent, flag it truncated.
+        throw const GeminiIncompleteException('INTERRUPTED');
+      }
       yield '';
+    } finally {
+      client.close();
     }
   }
 
