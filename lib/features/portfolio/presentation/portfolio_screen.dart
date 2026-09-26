@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import '../../../core/utils/ambient_clock.dart';
 import 'widgets/navbar.dart';
 import 'widgets/hero_section.dart';
 import 'widgets/impact_metrics_section.dart';
@@ -203,34 +204,46 @@ class ThemeBackgroundWidget extends StatefulWidget {
   State<ThemeBackgroundWidget> createState() => _ThemeBackgroundWidgetState();
 }
 
-class _ThemeBackgroundWidgetState extends State<ThemeBackgroundWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+class _ThemeBackgroundWidgetState extends State<ThemeBackgroundWidget> {
+  // Twinkle and drift are slow enough that every other ambient tick (10fps) looks the same.
+  final ValueNotifier<int> _repaint = ValueNotifier<int>(0);
+  int _ticks = 0;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 60),
-    )..repeat();
+    AmbientClock.instance.addListener(_onTick);
+  }
+
+  void _onTick() {
+    if ((++_ticks).isEven) _repaint.value++;
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    AmbientClock.instance.removeListener(_onTick);
+    _repaint.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return RepaintBoundary(
+    final animated = RepaintBoundary(
       child: CustomPaint(
         size: Size.infinite,
-        isComplex: true,
-        willChange: true,
-        painter: _SkyPainter(animation: _controller, isDark: widget.isDark),
+        painter: _SkyPainter(repaint: _repaint, isDark: widget.isDark),
       ),
+    );
+    // Moon/sun never move, so they get their own layer instead of being re-recorded per tick.
+    final celestial = RepaintBoundary(
+      child: CustomPaint(
+        size: Size.infinite,
+        painter: _CelestialPainter(isDark: widget.isDark),
+      ),
+    );
+    return Stack(
+      fit: StackFit.expand,
+      children: widget.isDark ? [animated, celestial] : [celestial, animated],
     );
   }
 }
@@ -247,120 +260,141 @@ final List<List<double>> _starData = List.generate(80, (i) {
 
 double _blurSigma(double radius) => radius * 0.57735 + 0.5;
 
+// Laying out a TextPainter every frame is expensive; icon glyphs never change.
+final Map<String, TextPainter> _iconPainters = {};
+
+TextPainter _iconPainter(IconData icon, double size, Color color) {
+  return _iconPainters.putIfAbsent(
+    '${icon.codePoint}|$size|${color.toARGB32()}',
+    () => TextPainter(
+      text: TextSpan(
+        text: String.fromCharCode(icon.codePoint),
+        style: TextStyle(
+          fontSize: size,
+          fontFamily: icon.fontFamily,
+          package: icon.fontPackage,
+          color: color,
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+    )..layout(),
+  );
+}
+
 class _SkyPainter extends CustomPainter {
-  final Animation<double> animation;
   final bool isDark;
 
-  _SkyPainter({required this.animation, required this.isDark})
-    : super(repaint: animation);
+  _SkyPainter({required Listenable repaint, required this.isDark})
+    : super(repaint: repaint);
 
   @override
   void paint(Canvas canvas, Size size) {
+    // Unwrapped time, so cloud drift doesn't jump when a cycle wraps.
+    final double t = AmbientClock.instance.seconds / 60;
     if (isDark) {
-      _paintNight(canvas, size);
+      _paintStars(canvas, size, t);
     } else {
-      _paintDay(canvas, size);
+      _paintClouds(canvas, size, t);
     }
   }
 
-  void _paintNight(Canvas canvas, Size size) {
-    final double t = animation.value;
-    final corePaint = Paint();
-    final glowPaint = Paint();
-
+  void _paintStars(Canvas canvas, Size size, double t) {
+    final paint = Paint();
     for (final s in _starData) {
-      final double dx = s[0] * size.width;
-      final double dy = s[1] * size.height;
-      final double diameter = s[2];
-      final double radius = diameter / 2;
-      final double phase = s[3];
-
-      // Twinkle: sin oscillates between 0 and 1 (30% to 80% opacity).
-      final double twinkle = (sin(t * 2 * pi + phase) + 1.0) / 2.0;
+      final Offset center = Offset(s[0] * size.width, s[1] * size.height);
+      final double radius = s[2] / 2;
+      final double twinkle = (sin(t * 2 * pi + s[3]) + 1.0) / 2.0;
       final double opacity = 0.3 + twinkle * 0.5;
-      final Offset center = Offset(dx, dy);
 
-      // Soft glow (mirrors the old BoxShadow: spread ~size*0.5, blur ~size*2).
-      glowPaint
-        ..color = Colors.white.withValues(alpha: opacity * 0.3)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, _blurSigma(diameter * 2));
-      canvas.drawCircle(center, radius + diameter * 0.5, glowPaint);
-
-      // Crisp star core.
-      corePaint.color = Colors.white.withValues(alpha: opacity);
-      canvas.drawCircle(center, radius, corePaint);
+      // Flat halos instead of a per-star MaskFilter.blur; indistinguishable at 1–4px.
+      paint.color = Colors.white.withValues(alpha: opacity * 0.06);
+      canvas.drawCircle(center, radius * 3, paint);
+      paint.color = Colors.white.withValues(alpha: opacity * 0.12);
+      canvas.drawCircle(center, radius * 2, paint);
+      paint.color = Colors.white.withValues(alpha: opacity);
+      canvas.drawCircle(center, radius, paint);
     }
-
-    _paintMoon(canvas, size);
   }
 
-  void _paintMoon(Canvas canvas, Size size) {
-    // Original layout: Positioned(right: 80, top: 100), 100x100 box.
-    final Offset center = Offset(size.width - 130, 150);
-
-    canvas.drawCircle(
-      center,
-      65,
-      Paint()
-        ..color = Colors.indigo.withValues(alpha: 0.25)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, _blurSigma(50)),
-    );
-    canvas.drawCircle(
-      center,
-      58,
-      Paint()
-        ..color = Colors.white.withValues(alpha: 0.1)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, _blurSigma(30)),
-    );
-
-    _paintIcon(
-      canvas,
-      Icons.nightlight_round,
-      70,
-      Colors.white.withValues(alpha: 0.35),
-      Offset(center.dx - 35, center.dy - 35),
-    );
-  }
-
-  void _paintDay(Canvas canvas, Size size) {
-    _paintSun(canvas, size);
-
-    final double t = animation.value;
+  void _paintClouds(Canvas canvas, Size size, double t) {
     for (int i = 0; i < 5; i++) {
       final double speed = 0.3 + (i * 0.12);
       final double yPos = 80.0 + (i * 130.0);
       final double cloudSize = 60.0 + (i % 3) * 20.0;
-      final double opacity = 0.12 + (i % 2) * 0.06; // 12% to 18%
+      final double opacity = 0.12 + (i % 2) * 0.06;
 
       final double progress = (t * speed + (i * 0.2)) % 1.0;
       final double xPos = progress * (size.width + 200) - 100;
 
-      _paintIcon(
-        canvas,
+      _iconPainter(
         Icons.cloud,
         cloudSize,
         Colors.blueGrey.shade300.withValues(alpha: opacity),
-        Offset(xPos, yPos),
-      );
+      ).paint(canvas, Offset(xPos, yPos));
     }
   }
 
+  @override
+  bool shouldRepaint(_SkyPainter oldDelegate) => oldDelegate.isDark != isDark;
+}
+
+class _CelestialPainter extends CustomPainter {
+  final bool isDark;
+
+  const _CelestialPainter({required this.isDark});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    if (isDark) {
+      _paintMoon(canvas, size);
+    } else {
+      _paintSun(canvas, size);
+    }
+  }
+
+  // Radial gradient shaped like a blurred disc (solid to r-σ, half at r, clear at r+2σ).
+  // Same look as MaskFilter.blur, without a Gaussian pass on every composite.
+  static void _softCircle(
+    Canvas canvas,
+    Offset center,
+    double radius,
+    double sigma,
+    Color color,
+  ) {
+    final double outer = radius + 2 * sigma;
+    canvas.drawCircle(
+      center,
+      outer,
+      Paint()
+        ..shader = RadialGradient(
+          colors: [
+            color,
+            color,
+            color.withValues(alpha: color.a * 0.5),
+            color.withValues(alpha: 0),
+          ],
+          stops: [0, max(0, radius - sigma) / outer, radius / outer, 1],
+        ).createShader(Rect.fromCircle(center: center, radius: outer)),
+    );
+  }
+
+  void _paintMoon(Canvas canvas, Size size) {
+    final Offset center = Offset(size.width - 130, 150);
+    _softCircle(canvas, center, 65, _blurSigma(50), Colors.indigo.withValues(alpha: 0.25));
+    _softCircle(canvas, center, 58, _blurSigma(30), Colors.white.withValues(alpha: 0.1));
+    _iconPainter(
+      Icons.nightlight_round,
+      70,
+      Colors.white.withValues(alpha: 0.35),
+    ).paint(canvas, Offset(center.dx - 35, center.dy - 35));
+  }
+
   void _paintSun(Canvas canvas, Size size) {
-    // Original layout: Positioned(right: 60, top: 60), 150x150 box.
     final Offset center = Offset(size.width - 135, 135);
     const double radius = 75;
 
-    // Outer orange bloom (old BoxShadow: spread 30, blur 80).
-    canvas.drawCircle(
-      center,
-      radius + 30,
-      Paint()
-        ..color = Colors.orange.withValues(alpha: 0.15)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, _blurSigma(80)),
-    );
+    _softCircle(canvas, center, radius + 30, _blurSigma(80), Colors.orange.withValues(alpha: 0.15));
 
-    // Radial-gradient sun disc.
-    final Rect rect = Rect.fromCircle(center: center, radius: radius);
     canvas.drawCircle(
       center,
       radius,
@@ -372,33 +406,11 @@ class _SkyPainter extends CustomPainter {
             Colors.transparent,
           ],
           stops: const [0.0, 0.5, 1.0],
-        ).createShader(rect),
+        ).createShader(Rect.fromCircle(center: center, radius: radius)),
     );
   }
 
-  void _paintIcon(
-    Canvas canvas,
-    IconData icon,
-    double size,
-    Color color,
-    Offset topLeft,
-  ) {
-    final builder = TextPainter(
-      text: TextSpan(
-        text: String.fromCharCode(icon.codePoint),
-        style: TextStyle(
-          fontSize: size,
-          fontFamily: icon.fontFamily,
-          package: icon.fontPackage,
-          color: color,
-        ),
-      ),
-      textDirection: TextDirection.ltr,
-    )..layout();
-    builder.paint(canvas, topLeft);
-  }
-
   @override
-  bool shouldRepaint(_SkyPainter oldDelegate) => oldDelegate.isDark != isDark;
+  bool shouldRepaint(_CelestialPainter oldDelegate) => oldDelegate.isDark != isDark;
 }
 

@@ -369,7 +369,6 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
               text: msg.text,
               style: TextStyle(
                 fontFamily: AppTheme.fontFamily,
-                fontFamilyFallback: AppTheme.fontFallback,
                 color: msg.isUser
                     ? Colors.white
                     : (isDark ? Colors.white70 : Colors.black87),
@@ -378,7 +377,6 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
               ),
               boldStyle: TextStyle(
                 fontFamily: AppTheme.fontFamily,
-                fontFamilyFallback: AppTheme.fontFallback,
                 color: msg.isUser
                     ? Colors.white
                     : (isDark ? Colors.white : Colors.black),

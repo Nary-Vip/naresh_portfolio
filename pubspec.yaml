@@ -85,8 +85,3 @@ flutter:
           weight: 700
         - asset: assets/fonts/PlusJakartaSans-800.ttf
           weight: 800
-    # Bundled color-emoji font (COLRv1) used as a global fallback so emoji
-    # render everywhere. CanvasKit has no system fonts, so this must ship.
-    - family: NotoColorEmoji
-      fonts:
-        - asset: assets/fonts/NotoColorEmoji.ttf

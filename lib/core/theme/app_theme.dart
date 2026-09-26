@@ -4,10 +4,6 @@ class AppTheme {
   /// Primary typeface, bundled under assets/fonts (no runtime download).
   static const String fontFamily = 'PlusJakartaSans';
 
-  /// Bundled color-emoji font, used as a global fallback so emoji render
-  /// anywhere text does — CanvasKit has no system fonts to fall back to.
-  static const List<String> fontFallback = <String>['NotoColorEmoji'];
-
   static TextStyle _text(
     Color color,
     double size,
@@ -17,7 +13,6 @@ class AppTheme {
   }) {
     return TextStyle(
       fontFamily: fontFamily,
-      fontFamilyFallback: fontFallback,
       color: color,
       fontSize: size,
       fontWeight: weight,
@@ -69,7 +64,6 @@ class AppTheme {
         error: Colors.redAccent,
       ),
       fontFamily: fontFamily,
-      fontFamilyFallback: fontFallback,
       textTheme: _textTheme(lightText, lightTextMuted),
       cardTheme: CardThemeData(
         color: lightSurface,
@@ -95,7 +89,6 @@ class AppTheme {
         error: Colors.redAccent,
       ),
       fontFamily: fontFamily,
-      fontFamilyFallback: fontFallback,
       textTheme: _textTheme(darkText, darkTextMuted),
       cardTheme: CardThemeData(
         color: darkSurface,

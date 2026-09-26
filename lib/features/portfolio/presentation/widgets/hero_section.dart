@@ -1,7 +1,8 @@
-import 'dart:async';
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/utils/ambient_clock.dart';
+import '../../../../core/utils/on_screen_builder.dart';
 import '../../../../core/utils/portfolio_data.dart';
 import '../../../../core/utils/responsive.dart';
 
@@ -20,48 +21,58 @@ class _HeroSectionState extends State<HeroSection> {
     final isDark = theme.brightness == Brightness.dark;
     final isDesktop = Responsive.isDesktop(context);
 
-    return Container(
-      width: double.infinity,
-      alignment: Alignment.center,
-      padding: EdgeInsets.symmetric(
-        horizontal: isDesktop ? 60 : 24,
-        vertical: isDesktop ? 80 : 40,
-      ),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 1200),
-        child: Responsive(
-          desktop: Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              Expanded(flex: 6, child: _buildHeroDetails(theme, isDark, true)),
-              const SizedBox(width: 40),
-              const Expanded(
-                flex: 4,
-                child: AspectRatio(
-                  aspectRatio: 1.0,
-                  child: FloatingCloudWidget(),
+    return OnScreenBuilder(
+      builder: (context, onScreen) => Container(
+        width: double.infinity,
+        alignment: Alignment.center,
+        padding: EdgeInsets.symmetric(
+          horizontal: isDesktop ? 60 : 24,
+          vertical: isDesktop ? 80 : 40,
+        ),
+        child: Container(
+          constraints: const BoxConstraints(maxWidth: 1200),
+          child: Responsive(
+            desktop: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  flex: 6,
+                  child: _buildHeroDetails(theme, isDark, true, onScreen),
                 ),
-              ),
-            ],
-          ),
-          mobile: Column(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              const SizedBox(
-                height: 250,
-                width: 250,
-                child: FloatingCloudWidget(),
-              ),
-              const SizedBox(height: 40),
-              _buildHeroDetails(theme, isDark, false),
-            ],
+                const SizedBox(width: 40),
+                Expanded(
+                  flex: 4,
+                  child: AspectRatio(
+                    aspectRatio: 1.0,
+                    child: FloatingCloudWidget(animate: onScreen),
+                  ),
+                ),
+              ],
+            ),
+            mobile: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                SizedBox(
+                  height: 250,
+                  width: 250,
+                  child: FloatingCloudWidget(animate: onScreen),
+                ),
+                const SizedBox(height: 40),
+                _buildHeroDetails(theme, isDark, false, onScreen),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeroDetails(ThemeData theme, bool isDark, bool alignLeft) {
+  Widget _buildHeroDetails(
+    ThemeData theme,
+    bool isDark,
+    bool alignLeft,
+    bool animate,
+  ) {
     final alignment = alignLeft
         ? CrossAxisAlignment.start
         : CrossAxisAlignment.center;
@@ -111,15 +122,25 @@ class _HeroSectionState extends State<HeroSection> {
           ),
         ),
         const SizedBox(height: 12),
-        // Typewriter animation subtitle
-        const TypewriterText(
-          prefixes: ["I build ", "I build ", "", ""],
-          phrases: [
-            "scalable cross platform application.",
-            "things that work. On every platform. Every State.",
-            "From first commit to store release - I own it.",
-            "Full-stack aware. Mobile at heart.",
-          ],
+        // Fixed size + own layer: each keystroke relays out and repaints only this box.
+        RepaintBoundary(
+          child: SizedBox(
+            width: double.infinity,
+            height: 40,
+            child: Align(
+              alignment: alignLeft ? Alignment.centerLeft : Alignment.center,
+              child: TypewriterText(
+                animate: animate,
+                prefixes: const ["I build ", "I build ", "", ""],
+                phrases: const [
+                  "scalable cross platform application.",
+                  "things that work. On every platform. Every State.",
+                  "From first commit to store release - I own it.",
+                  "Full-stack aware. Mobile at heart.",
+                ],
+              ),
+            ),
+          ),
         ),
         const SizedBox(height: 20),
         // Description Summary
@@ -289,11 +310,13 @@ class _HeroSectionState extends State<HeroSection> {
 class TypewriterText extends StatefulWidget {
   final List<String> prefixes;
   final List<String> phrases;
+  final bool animate;
 
   const TypewriterText({
     super.key,
     required this.prefixes,
     required this.phrases,
+    this.animate = true,
   });
 
   @override
@@ -301,50 +324,60 @@ class TypewriterText extends StatefulWidget {
 }
 
 class _TypewriterTextState extends State<TypewriterText> {
+  // Delays in AmbientClock ticks (50ms): 100ms per keystroke, 2s hold, 0.5s gap.
+  static const int _keystrokeTicks = 2;
+  static const int _holdTicks = 40;
+  static const int _gapTicks = 10;
+
   int _prefixIndex = 0;
   int _phraseIndex = 0;
   String _currentText = "";
   bool _isDeleting = false;
-  Timer? _timer;
+  int _ticksUntilNext = _keystrokeTicks;
 
   @override
   void initState() {
     super.initState();
-    _startTyping();
+    if (widget.animate) AmbientClock.instance.addListener(_onTick);
+  }
+
+  @override
+  void didUpdateWidget(TypewriterText oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animate == widget.animate) return;
+    if (widget.animate) {
+      AmbientClock.instance.addListener(_onTick);
+    } else {
+      AmbientClock.instance.removeListener(_onTick);
+    }
   }
 
   @override
   void dispose() {
-    _timer?.cancel();
+    if (widget.animate) AmbientClock.instance.removeListener(_onTick);
     super.dispose();
   }
 
-  void _startTyping() {
-    const period = Duration(milliseconds: 100);
-    _timer = Timer.periodic(period, (timer) {
-      final fullPhrase = widget.phrases[_phraseIndex];
-
-      setState(() {
-        if (_isDeleting) {
-          _currentText = fullPhrase.substring(0, _currentText.length - 1);
-          if (_currentText.isEmpty) {
-            _isDeleting = false;
-            _phraseIndex = (_phraseIndex + 1) % widget.phrases.length;
-            _prefixIndex = (_prefixIndex + 1) % widget.prefixes.length;
-            // Brief pause before typing next
-            timer.cancel();
-            Future.delayed(const Duration(milliseconds: 500), _startTyping);
-          }
-        } else {
-          _currentText = fullPhrase.substring(0, _currentText.length + 1);
-          if (_currentText == fullPhrase) {
-            _isDeleting = true;
-            // Pause at complete phrase
-            timer.cancel();
-            Future.delayed(const Duration(milliseconds: 2000), _startTyping);
-          }
+  void _onTick() {
+    if (--_ticksUntilNext > 0) return;
+    final fullPhrase = widget.phrases[_phraseIndex];
+    setState(() {
+      _ticksUntilNext = _keystrokeTicks;
+      if (_isDeleting) {
+        _currentText = fullPhrase.substring(0, _currentText.length - 1);
+        if (_currentText.isEmpty) {
+          _isDeleting = false;
+          _phraseIndex = (_phraseIndex + 1) % widget.phrases.length;
+          _prefixIndex = (_prefixIndex + 1) % widget.prefixes.length;
+          _ticksUntilNext = _gapTicks;
         }
-      });
+      } else {
+        _currentText = fullPhrase.substring(0, _currentText.length + 1);
+        if (_currentText == fullPhrase) {
+          _isDeleting = true;
+          _ticksUntilNext = _holdTicks;
+        }
+      }
     });
   }
 
@@ -386,8 +419,7 @@ class _TypewriterTextState extends State<TypewriterText> {
             ),
           ),
           const SizedBox(width: 2),
-          // Blinking cursor
-          const BlinkingCursor(),
+          BlinkingCursor(animate: widget.animate),
         ],
       ),
     );
@@ -395,53 +427,66 @@ class _TypewriterTextState extends State<TypewriterText> {
 }
 
 class BlinkingCursor extends StatefulWidget {
-  const BlinkingCursor({super.key});
+  final bool animate;
+
+  const BlinkingCursor({super.key, this.animate = true});
 
   @override
   State<BlinkingCursor> createState() => _BlinkingCursorState();
 }
 
-class _BlinkingCursorState extends State<BlinkingCursor>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
+class _BlinkingCursorState extends State<BlinkingCursor> {
+  static const int _blinkTicks = 10; // 500ms on the 50ms AmbientClock
+  int _ticks = 0;
+  bool _visible = true;
 
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 500),
-    )..repeat(reverse: true);
+    if (widget.animate) AmbientClock.instance.addListener(_onTick);
+  }
+
+  @override
+  void didUpdateWidget(BlinkingCursor oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.animate == widget.animate) return;
+    if (widget.animate) {
+      AmbientClock.instance.addListener(_onTick);
+    } else {
+      AmbientClock.instance.removeListener(_onTick);
+    }
   }
 
   @override
   void dispose() {
-    _controller.dispose();
+    if (widget.animate) AmbientClock.instance.removeListener(_onTick);
     super.dispose();
+  }
+
+  void _onTick() {
+    if (++_ticks % _blinkTicks == 0) setState(() => _visible = !_visible);
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    return FadeTransition(
-      opacity: _controller,
-      child: Container(width: 3, height: 22, color: theme.primaryColor),
+    return Opacity(
+      opacity: _visible ? 1 : 0,
+      child: Container(
+        width: 3,
+        height: 22,
+        color: Theme.of(context).primaryColor,
+      ),
     );
   }
 }
 
 // Custom Painter: Floating code tag cloud sphere
-class FloatingCloudWidget extends StatefulWidget {
-  const FloatingCloudWidget({super.key});
+class FloatingCloudWidget extends StatelessWidget {
+  final bool animate;
 
-  @override
-  State<FloatingCloudWidget> createState() => _FloatingCloudWidgetState();
-}
+  const FloatingCloudWidget({super.key, this.animate = true});
 
-class _FloatingCloudWidgetState extends State<FloatingCloudWidget>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  final List<FloatingTag> _tags = [
+  static final List<FloatingTag> _tags = [
     FloatingTag("Flutter", Offset(0.2, 0.3), 1.3),
     FloatingTag("Dart", Offset(0.75, 0.2), 1.0),
     FloatingTag("Redux", Offset(0.45, 0.15), 0.8),
@@ -462,38 +507,17 @@ class _FloatingCloudWidgetState extends State<FloatingCloudWidget>
   ];
 
   @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 10),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, _) {
-        return CustomPaint(
-          size: const Size(double.infinity, double.infinity),
-          painter: CloudPainter(
-            tags: _tags,
-            animationValue: _controller.value,
-            primaryColor: theme.primaryColor,
-            isDark: isDark,
-          ),
-        );
-      },
+    // Own layer, so its repaints don't re-record the rest of the scroll content.
+    return RepaintBoundary(
+      child: CustomPaint(
+        size: Size.infinite,
+        painter: CloudPainter(
+          tags: _tags,
+          primaryColor: Theme.of(context).primaryColor,
+          repaint: animate ? AmbientClock.instance : null,
+        ),
+      ),
     );
   }
 }
@@ -508,19 +532,42 @@ class FloatingTag {
 
 class CloudPainter extends CustomPainter {
   final List<FloatingTag> tags;
-  final double animationValue;
   final Color primaryColor;
-  final bool isDark;
+  final bool animating;
 
   CloudPainter({
     required this.tags,
-    required this.animationValue,
     required this.primaryColor,
-    required this.isDark,
-  });
+    super.repaint,
+  }) : animating = repaint != null;
+
+  // Opacity is quantized so each (tag, level) is laid out once, not every frame.
+  static const int _opacityLevels = 8;
+  static final Map<String, TextPainter> _labels = {};
+
+  TextPainter _label(FloatingTag tag, double opacity) {
+    final int level = ((opacity - 0.2) / 0.8 * (_opacityLevels - 1)).round();
+    return _labels.putIfAbsent(
+      '${tag.text}|$level|${primaryColor.toARGB32()}',
+      () => TextPainter(
+        text: TextSpan(
+          text: tag.text,
+          style: TextStyle(
+            color: primaryColor.withValues(
+              alpha: 0.2 + level / (_opacityLevels - 1) * 0.8,
+            ),
+            fontWeight: FontWeight.bold,
+            fontSize: 14 * tag.scale,
+          ),
+        ),
+        textDirection: TextDirection.ltr,
+      )..layout(),
+    );
+  }
 
   @override
   void paint(Canvas canvas, Size size) {
+    final double animationValue = (AmbientClock.instance.seconds / 10) % 1.0;
     final paint = Paint()
       ..color = primaryColor.withValues(alpha: 0.04)
       ..style = PaintingStyle.fill;
@@ -541,9 +588,6 @@ class CloudPainter extends CustomPainter {
       ringPaint,
     );
 
-    final textPainter = TextPainter(textDirection: TextDirection.ltr);
-
-    // Draw tags
     for (int i = 0; i < tags.length; i++) {
       final tag = tags[i];
       // Floating sinusoidal motion
@@ -562,22 +606,17 @@ class CloudPainter extends CustomPainter {
         1.0 - (distanceToCenter / radius) * 0.7,
       );
 
-      textPainter.text = TextSpan(
-        text: tag.text,
-        style: TextStyle(
-          color: primaryColor.withValues(alpha: opacity),
-          fontWeight: FontWeight.bold,
-          fontSize: 14 * tag.scale,
-        ),
-      );
-      textPainter.layout();
-      textPainter.paint(
+      final label = _label(tag, opacity);
+      label.paint(
         canvas,
-        tagPos - Offset(textPainter.width / 2, textPainter.height / 2),
+        tagPos - Offset(label.width / 2, label.height / 2),
       );
     }
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
+  bool shouldRepaint(CloudPainter oldDelegate) =>
+      oldDelegate.primaryColor != primaryColor ||
+      oldDelegate.animating != animating ||
+      oldDelegate.tags != tags;
 }
