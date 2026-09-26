@@ -11,6 +11,7 @@ import 'widgets/experience_section.dart';
 import 'widgets/projects_section.dart';
 import 'widgets/certifications_section.dart';
 import 'widgets/contact_section.dart';
+import 'widgets/self_portrait_section.dart';
 import 'widgets/ai_assistant_widget.dart';
 
 class PortfolioScreen extends StatefulWidget {
@@ -114,6 +115,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                   const EducationSection(),
                   _buildDivider(),
                   CertificationsSection(key: _certificationsKey),
+                  _buildDivider(),
+                  const SelfPortraitSection(),
                   _buildDivider(),
                   ContactSection(key: _contactKey),
                   const SizedBox(height: 80),

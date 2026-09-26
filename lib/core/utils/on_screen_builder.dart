@@ -8,7 +8,15 @@ class OnScreenBuilder extends StatefulWidget {
   /// Called on the first visibility check and on every change after it.
   final ValueChanged<bool>? onChanged;
 
-  const OnScreenBuilder({super.key, required this.builder, this.onChanged});
+  /// Counts the widget as on screen this many pixels before it scrolls into view.
+  final double margin;
+
+  const OnScreenBuilder({
+    super.key,
+    required this.builder,
+    this.onChanged,
+    this.margin = 0,
+  });
 
   @override
   State<OnScreenBuilder> createState() => _OnScreenBuilderState();
@@ -16,17 +24,21 @@ class OnScreenBuilder extends StatefulWidget {
 
 class _OnScreenBuilderState extends State<OnScreenBuilder> {
   ScrollableState? _scrollable;
+  // Track the position, not the ScrollableState: the state swaps in a new ScrollPosition
+  // when its dependencies change (e.g. a theme toggle), leaving old listeners deaf.
+  ScrollPosition? _position;
   // Null until first measured, so onChanged also fires when already visible at load.
   bool? _onScreen;
 
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
-    final scrollable = Scrollable.maybeOf(context);
-    if (scrollable != _scrollable) {
-      _scrollable?.position.removeListener(_update);
-      _scrollable = scrollable;
-      _scrollable?.position.addListener(_update);
+    _scrollable = Scrollable.maybeOf(context);
+    final position = _scrollable?.position;
+    if (position != _position) {
+      _position?.removeListener(_update);
+      _position = position;
+      _position?.addListener(_update);
     }
     WidgetsBinding.instance.addPostFrameCallback((_) => _update());
   }
@@ -40,8 +52,9 @@ class _OnScreenBuilderState extends State<OnScreenBuilder> {
     if (!box.hasSize || !box.attached || !viewport.attached) return;
 
     final top = box.localToGlobal(Offset.zero, ancestor: viewport).dy;
-    final visible = top < scrollable.position.viewportDimension &&
-        top + box.size.height > 0;
+    final visible =
+        top < scrollable.position.viewportDimension + widget.margin &&
+        top + box.size.height > -widget.margin;
     if (visible == _onScreen) return;
     setState(() => _onScreen = visible);
     widget.onChanged?.call(visible);
@@ -49,7 +62,7 @@ class _OnScreenBuilderState extends State<OnScreenBuilder> {
 
   @override
   void dispose() {
-    _scrollable?.position.removeListener(_update);
+    _position?.removeListener(_update);
     super.dispose();
   }
 
