@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/portfolio_data.dart';
 import '../../../../core/utils/responsive.dart';
+import 'section_header.dart';
 
 class ProjectsSection extends StatelessWidget {
   const ProjectsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isDesktop = Responsive.isDesktop(context);
 
     return Container(
@@ -23,9 +24,8 @@ class ProjectsSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section Title
-            _buildSectionTitle(theme),
-            const SizedBox(height: 40),
+            const SectionHeader("Featured projects"),
+            const SizedBox(height: 32),
 
             // Project Grid Layout
             Responsive(
@@ -62,24 +62,6 @@ class ProjectsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "FEATURED PROJECTS",
-          style: TextStyle(
-            color: theme.primaryColor,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(width: 50, height: 3, color: theme.primaryColor),
-      ],
-    );
-  }
 }
 
 // Stateful Project Card Widget with Elevating & Glowing Hover Effects
@@ -112,6 +94,7 @@ class _ProjectCardState extends State<ProjectCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final palette = context.palette;
     final isDesktop = Responsive.isDesktop(context);
 
     // Build the info column
@@ -126,21 +109,14 @@ class _ProjectCardState extends State<ProjectCard> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      widget.project.title,
-                      style: theme.textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: isDark ? Colors.white : Colors.black87,
-                        fontSize: isDesktop ? 22 : 18,
-                      ),
-                    ),
+                    Text(widget.project.title, style: theme.textTheme.titleLarge),
                     const SizedBox(height: 4),
                     Text(
                       widget.project.subtitle,
                       style: TextStyle(
                         color: theme.primaryColor,
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -157,14 +133,7 @@ class _ProjectCardState extends State<ProjectCard> {
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            widget.project.description,
-            style: theme.textTheme.bodyMedium?.copyWith(
-              color: isDark ? Colors.white70 : Colors.black87,
-              fontSize: 14,
-              height: 1.5,
-            ),
-          ),
+          Text(widget.project.description, style: theme.textTheme.bodyMedium),
           const SizedBox(height: 24),
           Wrap(
             spacing: 6,
@@ -176,17 +145,15 @@ class _ProjectCardState extends State<ProjectCard> {
                   vertical: 4,
                 ),
                 decoration: BoxDecoration(
-                  color: isDark
-                      ? const Color(0xFF222222)
-                      : Colors.grey.shade100,
+                  color: palette.surfaceMuted,
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Text(
                   tech,
                   style: TextStyle(
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white70 : Colors.black87,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: palette.textSecondary,
                   ),
                 ),
               );
@@ -204,9 +171,9 @@ class _ProjectCardState extends State<ProjectCard> {
           Text(
             "KEY CONTRIBUTIONS & FEATURES",
             style: TextStyle(
-              color: theme.primaryColor.withValues(alpha: 0.8),
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
+              color: theme.primaryColor,
+              fontSize: 12,
+              fontWeight: FontWeight.w700,
               letterSpacing: 1.2,
             ),
           ),
@@ -228,13 +195,7 @@ class _ProjectCardState extends State<ProjectCard> {
                     ),
                     const SizedBox(width: 8),
                     Expanded(
-                      child: Text(
-                        bullet,
-                        style: theme.textTheme.bodyMedium?.copyWith(
-                          fontSize: 13,
-                          height: 1.45,
-                        ),
-                      ),
+                      child: Text(bullet, style: theme.textTheme.bodyMedium),
                     ),
                   ],
                 ),

@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/portfolio_data.dart';
 import '../../../../core/utils/responsive.dart';
+import 'section_header.dart';
 
 class ExploringSection extends StatelessWidget {
   const ExploringSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isDesktop = Responsive.isDesktop(context);
 
     return Container(
@@ -23,28 +22,8 @@ class ExploringSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Text(
-              "CURRENTLY EXPLORING",
-              style: TextStyle(
-                color: theme.primaryColor,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(width: 50, height: 3, color: theme.primaryColor),
-            const SizedBox(height: 24),
-            Text(
-              "Future Tech & Research Areas",
-              style: theme.textTheme.titleLarge?.copyWith(
-                fontWeight: FontWeight.bold,
-                fontSize: 24,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-            ),
-            const SizedBox(height: 24),
+            const SectionHeader("Currently exploring"),
+            const SizedBox(height: 32),
 
             // Responsive layout of cards using Wrap
             LayoutBuilder(
@@ -165,20 +144,9 @@ class _ExploringCardState extends State<ExploringCard> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                Text(
-                  widget.item.topic,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                ),
+                Text(widget.item.topic, style: theme.textTheme.titleMedium),
                 const SizedBox(height: 10),
-                Text(
-                  widget.item.description,
-                  style: theme.textTheme.bodyMedium?.copyWith(
-                    height: 1.5,
-                  ),
-                ),
+                Text(widget.item.description, style: theme.textTheme.bodyMedium),
               ],
             ),
           ),

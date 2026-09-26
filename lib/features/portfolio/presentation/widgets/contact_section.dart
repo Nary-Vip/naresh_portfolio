@@ -4,8 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/portfolio_data.dart';
 import '../../../../core/utils/responsive.dart';
+import 'section_header.dart';
 
 class ContactSection extends StatefulWidget {
   const ContactSection({super.key});
@@ -174,9 +176,8 @@ class _ContactSectionState extends State<ContactSection> {
         constraints: const BoxConstraints(maxWidth: 1200),
         child: Column(
           children: [
-            // Section header
-            _buildSectionTitle(theme),
-            const SizedBox(height: 40),
+            const SectionHeader("Get in touch", centered: true),
+            const SizedBox(height: 32),
 
             // Form + Details Columns
             Responsive(
@@ -204,29 +205,11 @@ class _ContactSectionState extends State<ContactSection> {
             Text(
               "© ${DateTime.now().year} R M Naresh Kumar. Built with Love ❤️? Hate 💀? Probably Passion 🪄",
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(fontSize: 12),
+              style: theme.textTheme.bodySmall,
             ),
           ],
         ),
       ),
-    );
-  }
-
-  Widget _buildSectionTitle(ThemeData theme) {
-    return Column(
-      children: [
-        Text(
-          "GET IN TOUCH",
-          style: TextStyle(
-            color: theme.primaryColor,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(width: 50, height: 3, color: theme.primaryColor),
-      ],
     );
   }
 
@@ -236,16 +219,12 @@ class _ContactSectionState extends State<ContactSection> {
       children: [
         Text(
           "Have a mobile engineering problem worth solving?",
-          style: theme.textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            fontSize: 28,
-            color: isDark ? Colors.white : Colors.black87,
-          ),
+          style: theme.textTheme.headlineSmall,
         ),
         const SizedBox(height: 16),
         Text(
           "Email works best, or pick a handle below — I read everything and reply myself.",
-          style: theme.textTheme.bodyLarge?.copyWith(height: 1.6),
+          style: theme.textTheme.bodyLarge,
         ),
         const SizedBox(height: 32),
 
@@ -328,17 +307,18 @@ class _ContactSectionState extends State<ContactSection> {
               children: [
                 Text(
                   label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 13,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.w600,
                   ),
                 ),
+                const SizedBox(height: 2),
                 Text(
                   val,
-                  style: TextStyle(
-                    color: isDark ? Colors.white70 : Colors.black54,
-                    fontSize: 14,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: context.palette.textPrimary,
+                    fontWeight: FontWeight.w500,
                     decoration: TextDecoration.underline,
+                    decorationColor: context.palette.textMuted,
                   ),
                 ),
               ],
@@ -358,13 +338,7 @@ class _ContactSectionState extends State<ContactSection> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Drop A Message",
-                style: theme.textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                ),
-              ),
+              Text("Drop a message", style: theme.textTheme.titleMedium),
               const SizedBox(height: 24),
 
               // Name Field
@@ -464,11 +438,12 @@ class _ContactSectionState extends State<ContactSection> {
     IconData prefixIcon, {
     bool isMultiline = false,
   }) {
-    final isDark = theme.brightness == Brightness.dark;
-    final borderColor = isDark ? const Color(0xFF222222) : Colors.grey.shade300;
+    final palette = context.palette;
+    final borderColor = palette.border;
 
     return InputDecoration(
       hintText: hint,
+      hintStyle: theme.textTheme.bodyMedium?.copyWith(color: palette.textMuted),
       prefixIcon: isMultiline
           ? Column(
               children: [
@@ -484,7 +459,7 @@ class _ContactSectionState extends State<ContactSection> {
             )
           : Icon(prefixIcon, color: theme.primaryColor.withValues(alpha: 0.7)),
       filled: true,
-      fillColor: isDark ? const Color(0xFF0C0C0C) : Colors.grey.shade50,
+      fillColor: palette.surfaceMuted,
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(12),
@@ -701,24 +676,12 @@ class _SuccessDialogState extends State<_SuccessDialog>
                     },
                     child: Column(
                       children: [
-                        Text(
-                          "Message Sent!",
-                          style: TextStyle(
-                            color: isDark ? Colors.white : Colors.black87,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 24,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
+                        Text("Message Sent!", style: theme.textTheme.titleLarge),
                         const SizedBox(height: 12),
                         Text(
                           "Thank you for reaching out! Your message has been sent successfully to Naresh. He will get back to you shortly.",
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: isDark ? Colors.white70 : Colors.black54,
-                            fontSize: 15,
-                            height: 1.5,
-                          ),
+                          style: theme.textTheme.bodyLarge,
                         ),
                         const SizedBox(height: 32),
 

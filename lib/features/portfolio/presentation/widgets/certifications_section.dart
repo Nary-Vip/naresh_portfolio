@@ -1,14 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/portfolio_data.dart';
 import '../../../../core/utils/responsive.dart';
+import 'section_header.dart';
 
 class CertificationsSection extends StatelessWidget {
   const CertificationsSection({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     final isDesktop = Responsive.isDesktop(context);
 
     return Container(
@@ -23,9 +24,8 @@ class CertificationsSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section Title
-            _buildSectionTitle(theme),
-            const SizedBox(height: 40),
+            const SectionHeader("Certifications & credentials"),
+            const SizedBox(height: 32),
 
             // Certifications Grid
             Responsive(
@@ -60,24 +60,6 @@ class CertificationsSection extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "CERTIFICATIONS & CREDENTIALS",
-          style: TextStyle(
-            color: theme.primaryColor,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(width: 50, height: 3, color: theme.primaryColor),
-      ],
-    );
-  }
 }
 
 // Interactive Hover Zoom Certification Card
@@ -103,21 +85,20 @@ class _CertificationCardState extends State<CertificationCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final palette = context.palette;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
       onExit: (_) => setState(() => _isHovered = false),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: _isHovered ? theme.primaryColor : Colors.transparent,
-            width: 1.5,
+      // Hover recolours the card's own border (an outer border drew a double outline).
+      child: Card(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+            side: BorderSide(
+              color: _isHovered ? theme.primaryColor : palette.border,
+              width: 1.5,
+            ),
           ),
-        ),
-        child: Card(
-          margin: EdgeInsets.zero,
           child: Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -142,9 +123,9 @@ class _CertificationCardState extends State<CertificationCard> {
                     ),
                     Text(
                       widget.cert.date,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: palette.textSecondary,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
                   ],
@@ -159,10 +140,7 @@ class _CertificationCardState extends State<CertificationCard> {
                       widget.cert.title,
                       maxLines: 2,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 15,
-                      ),
+                      style: theme.textTheme.titleSmall,
                     ),
                     const SizedBox(height: 4),
                     Text(
@@ -203,7 +181,6 @@ class _CertificationCardState extends State<CertificationCard> {
               ],
             ),
           ),
-        ),
       ),
     );
   }

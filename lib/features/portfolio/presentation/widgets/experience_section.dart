@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/portfolio_data.dart';
 import '../../../../core/utils/responsive.dart';
+import 'section_header.dart';
 
 class ExperienceSection extends StatelessWidget {
   const ExperienceSection({super.key});
@@ -8,7 +10,6 @@ class ExperienceSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isDesktop = Responsive.isDesktop(context);
 
     return Container(
@@ -25,9 +26,8 @@ class ExperienceSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section Title
-            _buildSectionTitle(theme),
-            const SizedBox(height: 40),
+            const SectionHeader("Professional experience"),
+            const SizedBox(height: 32),
 
             // Timeline Stack
             ListView.builder(
@@ -47,12 +47,7 @@ class ExperienceSection extends StatelessWidget {
                         top: 36, // Starts below the dot
                         bottom: 0,
                         left: 7, // Centered relative to the 16px dot
-                        child: Container(
-                          width: 2,
-                          color: isDark
-                              ? const Color(0xFF222222)
-                              : Colors.grey.shade300,
-                        ),
+                        child: Container(width: 2, color: context.palette.border),
                       ),
                     // Timeline Dot Indicator
                     Positioned(
@@ -89,24 +84,6 @@ class ExperienceSection extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "PROFESSIONAL EXPERIENCE",
-          style: TextStyle(
-            color: theme.primaryColor,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(width: 50, height: 3, color: theme.primaryColor),
-      ],
-    );
-  }
 }
 
 // Collapsible Stateful Experience Card Widget
@@ -124,7 +101,16 @@ class _ExperienceCardState extends State<ExperienceCard> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final palette = context.palette;
+    final companyStyle = TextStyle(
+      color: theme.primaryColor,
+      fontWeight: FontWeight.w600,
+      fontSize: 15,
+    );
+    final periodStyle = theme.textTheme.bodySmall?.copyWith(
+      color: palette.textSecondary,
+      fontWeight: FontWeight.w600,
+    );
 
     // Determine how many bullet points to show by default
     final visibleBullets = _isExpanded
@@ -142,35 +128,13 @@ class _ExperienceCardState extends State<ExperienceCard> {
                 ? Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.exp.role,
-                        style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
+                      Text(widget.exp.role, style: theme.textTheme.titleLarge),
                       const SizedBox(height: 4),
-                      Text(
-                        widget.exp.company,
-                        style: TextStyle(
-                          color: theme.primaryColor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
+                      Text(widget.exp.company, style: companyStyle),
                       const SizedBox(height: 8),
-                      Text(
-                        widget.exp.period,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 14,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        widget.exp.location,
-                        style: theme.textTheme.bodyMedium,
-                      ),
+                      Text(widget.exp.period, style: periodStyle),
+                      const SizedBox(height: 2),
+                      Text(widget.exp.location, style: theme.textTheme.bodySmall),
                     ],
                   )
                 : Row(
@@ -181,22 +145,9 @@ class _ExperienceCardState extends State<ExperienceCard> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              widget.exp.role,
-                              style: theme.textTheme.titleLarge?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                            ),
+                            Text(widget.exp.role, style: theme.textTheme.titleLarge),
                             const SizedBox(height: 4),
-                            Text(
-                              widget.exp.company,
-                              style: TextStyle(
-                                color: theme.primaryColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 16,
-                              ),
-                            ),
+                            Text(widget.exp.company, style: companyStyle),
                           ],
                         ),
                       ),
@@ -204,18 +155,9 @@ class _ExperienceCardState extends State<ExperienceCard> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          Text(
-                            widget.exp.period,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            widget.exp.location,
-                            style: theme.textTheme.bodyMedium,
-                          ),
+                          Text(widget.exp.period, style: periodStyle),
+                          const SizedBox(height: 2),
+                          Text(widget.exp.location, style: theme.textTheme.bodySmall),
                         ],
                       ),
                     ],
@@ -245,13 +187,7 @@ class _ExperienceCardState extends State<ExperienceCard> {
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: Text(
-                          bullet,
-                          style: theme.textTheme.bodyMedium?.copyWith(
-                            color: isDark ? Colors.white70 : Colors.black87,
-                            height: 1.5,
-                          ),
-                        ),
+                        child: Text(bullet, style: theme.textTheme.bodyMedium),
                       ),
                     ],
                   ),

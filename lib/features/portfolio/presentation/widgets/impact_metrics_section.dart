@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/on_screen_builder.dart';
 import '../../../../core/utils/portfolio_data.dart';
 import '../../../../core/utils/responsive.dart';
+import 'section_header.dart';
 
 class ImpactMetricsSection extends StatefulWidget {
   const ImpactMetricsSection({super.key});
@@ -58,21 +60,23 @@ class _ImpactMetricsSectionState extends State<ImpactMetricsSection>
       alignment: Alignment.center,
       padding: EdgeInsets.symmetric(
         horizontal: isDesktop ? 60 : 24,
-        vertical: 60,
+        vertical: 40,
       ),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 1200),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section Header
-            _buildSectionHeader(theme),
-            const SizedBox(height: 48),
+            const SectionHeader("Professional impact"),
+            const SizedBox(height: 32),
 
             // Metrics Cards Layout (Responsive Grid / Row)
             if (isDesktop)
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              // Equal-height cards sized to their content, instead of a fixed height
+              // that truncated longer descriptions.
+              IntrinsicHeight(
+                child: Row(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: List.generate(
                   nareshPortfolioData.impactMetrics.length,
                   (index) => Expanded(
@@ -87,6 +91,7 @@ class _ImpactMetricsSectionState extends State<ImpactMetricsSection>
                       ),
                     ),
                   ),
+                ),
                 ),
               )
             else
@@ -116,36 +121,15 @@ class _ImpactMetricsSectionState extends State<ImpactMetricsSection>
     );
   }
 
-  Widget _buildSectionHeader(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "PROFESSIONAL IMPACT",
-          style: TextStyle(
-            color: theme.primaryColor,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(width: 50, height: 3, color: theme.primaryColor),
-      ],
-    );
-  }
-
   Widget _buildSummaryCard(ThemeData theme, bool isDark) {
+    final palette = context.palette;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? const Color(0xFF111111).withValues(alpha: 0.8) : Colors.white.withValues(alpha: 0.8),
+        color: palette.surface,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: isDark ? const Color(0xFF222222) : Colors.grey.shade200,
-          width: 1.5,
-        ),
+        border: Border.all(color: palette.border, width: 1.5),
       ),
       child: Row(
         children: [
@@ -168,20 +152,12 @@ class _ImpactMetricsSectionState extends State<ImpactMetricsSection>
               children: [
                 Text(
                   "Architectural Principles & Performance Focus",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: isDark ? Colors.white : Colors.black87,
-                  ),
+                  style: theme.textTheme.titleSmall,
                 ),
                 const SizedBox(height: 6),
                 Text(
                   "I combine clean cross-platform architectures (BLoC/Redux) with native optimizations to build secure, robust, and offline-resilient mobile applications. My development process prioritizes VAPT security compliance, optimized network caching, and low-latency real-time state synchronization.",
-                  style: TextStyle(
-                    fontSize: 13,
-                    height: 1.5,
-                    color: isDark ? Colors.white70 : Colors.black87,
-                  ),
+                  style: theme.textTheme.bodyMedium,
                 ),
               ],
             ),
@@ -253,6 +229,7 @@ class _HoverMetricCardState extends State<HoverMetricCard> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final palette = context.palette;
     final parsed = _parseValue(widget.metric.value);
 
     return MouseRegion(
@@ -270,18 +247,15 @@ class _HoverMetricCardState extends State<HoverMetricCard> {
 
           return AnimatedContainer(
             duration: const Duration(milliseconds: 250),
-            height: 240,
             padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
             transform: _isHovered
                 ? Matrix4.translationValues(0.0, -8.0, 0.0)
                 : Matrix4.identity(),
             decoration: BoxDecoration(
-              color: isDark ? const Color(0xFF111111) : Colors.white,
+              color: palette.surface,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: _isHovered
-                    ? theme.primaryColor
-                    : (isDark ? const Color(0xFF222222) : Colors.grey.shade200),
+                color: _isHovered ? theme.primaryColor : palette.border,
                 width: 1.5,
               ),
               boxShadow: _isHovered
@@ -303,7 +277,6 @@ class _HoverMetricCardState extends State<HoverMetricCard> {
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 // Top Row: Icon + Value
                 Row(
@@ -333,36 +306,11 @@ class _HoverMetricCardState extends State<HoverMetricCard> {
                   ],
                 ),
                 
-                const SizedBox(height: 16),
-                
-                // Bottom Section: Label + Description
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Text(
-                        widget.metric.label,
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                      const SizedBox(height: 6),
-                      Text(
-                        widget.metric.description,
-                        maxLines: 4,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 12,
-                          height: 1.4,
-                          color: isDark ? Colors.white60 : Colors.black54,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                // Top-aligned so labels line up across a row regardless of description length.
+                const SizedBox(height: 24),
+                Text(widget.metric.label, style: theme.textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Text(widget.metric.description, style: theme.textTheme.bodyMedium),
               ],
             ),
           );

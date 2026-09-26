@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/on_screen_builder.dart';
 import '../../../../core/utils/responsive.dart';
+import 'section_header.dart';
 
 class SelfPortraitSection extends StatefulWidget {
   const SelfPortraitSection({super.key});
@@ -18,8 +20,7 @@ class _SelfPortraitSectionState extends State<SelfPortraitSection> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final palette = context.palette;
     final isDesktop = Responsive.isDesktop(context);
 
     return Container(
@@ -34,17 +35,7 @@ class _SelfPortraitSectionState extends State<SelfPortraitSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              "BEHIND THE CODE",
-              style: TextStyle(
-                color: theme.primaryColor,
-                fontWeight: FontWeight.bold,
-                letterSpacing: 1.5,
-                fontSize: 14,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Container(width: 50, height: 3, color: theme.primaryColor),
+            const SectionHeader("Behind the code"),
             const SizedBox(height: 32),
             OnScreenBuilder(
               margin: 600,
@@ -54,10 +45,7 @@ class _SelfPortraitSectionState extends State<SelfPortraitSection> {
               builder: (context, _) => Container(
                 foregroundDecoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                    color: isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade200,
-                    width: 1.5,
-                  ),
+                  border: Border.all(color: palette.border, width: 1.5),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(16),
@@ -65,7 +53,7 @@ class _SelfPortraitSectionState extends State<SelfPortraitSection> {
                   child: AspectRatio(
                     aspectRatio: _aspectRatio,
                     child: ColoredBox(
-                      color: isDark ? const Color(0xFF111111) : Colors.grey.shade100,
+                      color: palette.surfaceMuted,
                       child: _load ? _buildImage() : null,
                     ),
                   ),

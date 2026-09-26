@@ -1,6 +1,7 @@
 import 'dart:math' as math;
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/ambient_clock.dart';
 import '../../../../core/utils/on_screen_builder.dart';
 import '../../../../core/utils/portfolio_data.dart';
@@ -100,7 +101,7 @@ class _HeroSectionState extends State<HeroSection> {
                 "${nareshPortfolioData.title} at ${nareshPortfolioData.experiences.first.company}",
                 textAlign: textAlignment,
                 style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.black54,
+                  color: context.palette.textSecondary,
                   fontWeight: FontWeight.w600,
                   fontSize: 15,
                   letterSpacing: 0.2,
@@ -116,7 +117,6 @@ class _HeroSectionState extends State<HeroSection> {
           textAlign: textAlignment,
           style: theme.textTheme.displayMedium?.copyWith(
             fontWeight: FontWeight.w900,
-            color: isDark ? Colors.white : Colors.black87,
             fontSize: alignLeft ? 56 : 38,
             height: 1.1,
           ),
@@ -147,10 +147,7 @@ class _HeroSectionState extends State<HeroSection> {
         Text(
           nareshPortfolioData.summary,
           textAlign: textAlignment,
-          style: theme.textTheme.bodyLarge?.copyWith(
-            color: isDark ? Colors.white70 : Colors.black87,
-            height: 1.6,
-          ),
+          style: theme.textTheme.bodyLarge,
         ),
         const SizedBox(height: 32),
         // Action Buttons
@@ -269,18 +266,13 @@ class _HeroSectionState extends State<HeroSection> {
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              size: 18,
-              color: isDark ? Colors.white60 : Colors.black54,
-            ),
+            Icon(icon, size: 18, color: context.palette.textMuted),
             const SizedBox(width: 8),
             Text(
               text,
-              style: TextStyle(
-                fontSize: 14,
-                color: isDark ? Colors.white60 : Colors.black54,
+              style: theme.textTheme.bodyMedium?.copyWith(
                 decoration: TextDecoration.underline,
+                decorationColor: context.palette.textMuted,
               ),
             ),
           ],
@@ -397,10 +389,8 @@ class _TypewriterTextState extends State<TypewriterText> {
             Text(
               widget.prefixes[_prefixIndex],
               style: theme.textTheme.titleLarge?.copyWith(
-                color: theme.brightness == Brightness.dark
-                    ? Colors.white54
-                    : Colors.black54,
-                fontWeight: FontWeight.normal,
+                color: context.palette.textSecondary,
+                fontWeight: FontWeight.w400,
                 fontSize: fontSize,
               ),
             ),

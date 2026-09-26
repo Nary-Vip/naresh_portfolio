@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/portfolio_data.dart';
 import '../../../../core/utils/responsive.dart';
+import 'section_header.dart';
 
 class SkillsSection extends StatefulWidget {
   const SkillsSection({super.key});
@@ -32,7 +34,7 @@ class _SkillsSectionState extends State<SkillsSection> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final palette = context.palette;
     final isDesktop = Responsive.isDesktop(context);
 
     return Container(
@@ -47,9 +49,8 @@ class _SkillsSectionState extends State<SkillsSection> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section Title
-            _buildSectionTitle(theme),
-            const SizedBox(height: 40),
+            const SectionHeader("Technical skills"),
+            const SizedBox(height: 32),
 
             // Tab bar
             SingleChildScrollView(
@@ -74,16 +75,12 @@ class _SkillsSectionState extends State<SkillsSection> {
                         decoration: BoxDecoration(
                           color: isActive
                               ? theme.primaryColor
-                              : (isDark
-                                    ? const Color(0xFF111111)
-                                    : Colors.grey.shade100),
+                              : palette.surfaceMuted,
                           borderRadius: BorderRadius.circular(20),
                           border: Border.all(
                             color: isActive
                                 ? theme.primaryColor
-                                : (isDark
-                                      ? const Color(0xFF222222)
-                                      : Colors.grey.shade300),
+                                : palette.border,
                           ),
                         ),
                         child: Text(
@@ -91,8 +88,8 @@ class _SkillsSectionState extends State<SkillsSection> {
                           style: TextStyle(
                             color: isActive
                                 ? Colors.white
-                                : (isDark ? Colors.white70 : Colors.black87),
-                            fontWeight: FontWeight.bold,
+                                : palette.textSecondary,
+                            fontWeight: FontWeight.w600,
                             fontSize: 14,
                           ),
                         ),
@@ -145,24 +142,6 @@ class _SkillsSectionState extends State<SkillsSection> {
     );
   }
 
-  Widget _buildSectionTitle(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "TECHNICAL SKILLS",
-          style: TextStyle(
-            color: theme.primaryColor,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(width: 50, height: 3, color: theme.primaryColor),
-      ],
-    );
-  }
 }
 
 // Stateful Widget for micro-animations on skill chips
@@ -180,7 +159,7 @@ class _HoverSkillChipState extends State<HoverSkillChip> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final palette = context.palette;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -189,14 +168,16 @@ class _HoverSkillChipState extends State<HoverSkillChip> {
         duration: const Duration(milliseconds: 200),
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 12),
         decoration: BoxDecoration(
+          // Tint blended onto the opaque surface, so the background never shows through.
           color: _isHovered
-              ? theme.primaryColor.withValues(alpha: 0.1)
-              : (isDark ? const Color(0xFF111111) : Colors.white),
+              ? Color.alphaBlend(
+                  theme.primaryColor.withValues(alpha: 0.1),
+                  palette.surface,
+                )
+              : palette.surface,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: _isHovered
-                ? theme.primaryColor
-                : (isDark ? const Color(0xFF222222) : Colors.grey.shade300),
+            color: _isHovered ? theme.primaryColor : palette.border,
             width: 1.5,
           ),
           boxShadow: _isHovered
@@ -212,10 +193,8 @@ class _HoverSkillChipState extends State<HoverSkillChip> {
         child: Text(
           widget.skill,
           style: TextStyle(
-            color: _isHovered
-                ? theme.primaryColor
-                : (isDark ? Colors.white70 : Colors.black87),
-            fontWeight: FontWeight.bold,
+            color: _isHovered ? theme.primaryColor : palette.textPrimary,
+            fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
         ),

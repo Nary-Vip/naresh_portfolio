@@ -1,14 +1,23 @@
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/portfolio_data.dart';
 import '../../../../core/utils/responsive.dart';
+import 'section_header.dart';
 
 class EducationSection extends StatelessWidget {
   const EducationSection({super.key});
 
+  static const List<String> _focusAreas = [
+    "Artificial Intelligence",
+    "Machine Learning",
+    "Deep Learning",
+    "Python",
+    "Data Structures & Algorithms",
+  ];
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
     final isDesktop = Responsive.isDesktop(context);
 
     return Container(
@@ -23,42 +32,18 @@ class EducationSection extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Section Title
-            _buildSectionTitle(theme),
+            const SectionHeader("Education"),
             const SizedBox(height: 32),
-
-            // Card
             Card(
-              elevation: 4,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16),
-                side: BorderSide(
-                  color: isDark
-                      ? const Color(0xFF2C2C2C)
-                      : Colors.grey.shade200,
-                  width: 1.5,
-                ),
-              ),
               child: Padding(
-                padding: EdgeInsets.all(isDesktop ? 32.0 : 20.0),
+                padding: EdgeInsets.all(isDesktop ? 32.0 : 24.0),
                 child: Responsive(
                   desktop: Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          color: theme.primaryColor.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Icon(
-                          Icons.school_outlined,
-                          color: theme.primaryColor,
-                          size: 48,
-                        ),
-                      ),
+                      _buildIconBadge(theme, size: 48, padding: 20),
                       const SizedBox(width: 32),
-                      Expanded(child: _buildEducationContent(theme, isDark)),
+                      Expanded(child: _buildContent(context, theme)),
                     ],
                   ),
                   mobile: Column(
@@ -66,32 +51,18 @@ class EducationSection extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Container(
-                            padding: const EdgeInsets.all(12),
-                            decoration: BoxDecoration(
-                              color: theme.primaryColor.withValues(alpha: 0.1),
-                              shape: BoxShape.circle,
-                            ),
-                            child: Icon(
-                              Icons.school_outlined,
-                              color: theme.primaryColor,
-                              size: 32,
-                            ),
-                          ),
+                          _buildIconBadge(theme, size: 32, padding: 12),
                           const SizedBox(width: 16),
                           Expanded(
                             child: Text(
                               nareshPortfolioData.educationSchool,
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 18,
-                              ),
+                              style: theme.textTheme.titleLarge,
                             ),
                           ),
                         ],
                       ),
                       const SizedBox(height: 20),
-                      _buildEducationContent(theme, isDark, isMobile: true),
+                      _buildContent(context, theme, showSchool: false),
                     ],
                   ),
                 ),
@@ -103,52 +74,43 @@ class EducationSection extends StatelessWidget {
     );
   }
 
-  Widget _buildSectionTitle(ThemeData theme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "EDUCATION",
-          style: TextStyle(
-            color: theme.primaryColor,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.5,
-            fontSize: 14,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Container(width: 50, height: 3, color: theme.primaryColor),
-      ],
+  Widget _buildIconBadge(
+    ThemeData theme, {
+    required double size,
+    required double padding,
+  }) {
+    return Container(
+      padding: EdgeInsets.all(padding),
+      decoration: BoxDecoration(
+        color: theme.primaryColor.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(Icons.school_outlined, color: theme.primaryColor, size: size),
     );
   }
 
-  Widget _buildEducationContent(
-    ThemeData theme,
-    bool isDark, {
-    bool isMobile = false,
+  Widget _buildContent(
+    BuildContext context,
+    ThemeData theme, {
+    bool showSchool = true,
   }) {
-    final titleColor = isDark ? Colors.white : Colors.black87;
-    final textColor = isDark ? Colors.white70 : Colors.black87;
+    final palette = context.palette;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        if (!isMobile) ...[
+        if (showSchool) ...[
           Text(
             nareshPortfolioData.educationSchool,
-            style: theme.textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.bold,
-              fontSize: 24,
-              color: titleColor,
-            ),
+            style: theme.textTheme.titleLarge,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 4),
         ],
         Text(
           nareshPortfolioData.educationDegree,
           style: TextStyle(
             fontWeight: FontWeight.w600,
-            fontSize: 16,
+            fontSize: 15,
             color: theme.primaryColor,
           ),
         ),
@@ -157,10 +119,10 @@ class EducationSection extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             Text(
-              "Period: ${nareshPortfolioData.educationPeriod}",
-              style: TextStyle(
-                color: textColor.withValues(alpha: 0.8),
-                fontSize: 14,
+              nareshPortfolioData.educationPeriod,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: palette.textSecondary,
+                fontWeight: FontWeight.w600,
               ),
             ),
             Container(
@@ -173,7 +135,7 @@ class EducationSection extends StatelessWidget {
                 "CGPA: ${nareshPortfolioData.educationCgpa}",
                 style: TextStyle(
                   color: theme.primaryColor,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w700,
                   fontSize: 14,
                 ),
               ),
@@ -181,49 +143,39 @@ class EducationSection extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 20),
-        Divider(
-          color: isDark ? const Color(0xFF2C2C2C) : Colors.grey.shade200,
-          height: 1,
-        ),
+        const Divider(),
         const SizedBox(height: 16),
         Text(
-          "Core Focus Areas & Specializations:",
+          "Core focus areas",
           style: TextStyle(
-            color: titleColor,
-            fontWeight: FontWeight.bold,
+            color: palette.textPrimary,
+            fontWeight: FontWeight.w600,
             fontSize: 14,
           ),
         ),
         const SizedBox(height: 12),
         Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _buildSpecializationChip(theme, "Artificial Intelligence"),
-            _buildSpecializationChip(theme, "Machine Learning"),
-            _buildSpecializationChip(theme, "Deep Learning"),
-            _buildSpecializationChip(theme, "Python"),
-            _buildSpecializationChip(theme, "Data Structures & Algorithms"),
-          ],
+          spacing: 6,
+          runSpacing: 6,
+          children: _focusAreas.map((area) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: palette.surfaceMuted,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(
+                area,
+                style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                  color: palette.textSecondary,
+                ),
+              ),
+            );
+          }).toList(),
         ),
       ],
-    );
-  }
-
-  Widget _buildSpecializationChip(ThemeData theme, String label) {
-    return Chip(
-      label: Text(
-        label,
-        style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
-      ),
-      backgroundColor: theme.brightness == Brightness.dark
-          ? const Color(0xFF1A1A1A)
-          : Colors.grey.shade100,
-      side: BorderSide(
-        color: theme.brightness == Brightness.dark
-            ? const Color(0xFF2C2C2C)
-            : Colors.grey.shade200,
-      ),
     );
   }
 }
