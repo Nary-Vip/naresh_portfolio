@@ -1,25 +1,29 @@
+import 'package:flutter/foundation.dart' show ValueListenable;
 import 'package:flutter/material.dart';
+import '../../../../core/theme/app_theme.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../main.dart';
 
+/// Page sections the navbar can scroll to and highlight, in page order.
+enum NavSection { hero, impact, skills, experience, projects, certifications, contact }
+
+const Map<NavSection, String> _navLabels = {
+  NavSection.impact: "Impact",
+  NavSection.skills: "Skills",
+  NavSection.experience: "Experience",
+  NavSection.projects: "Projects",
+  NavSection.certifications: "Certifications",
+  NavSection.contact: "Contact",
+};
+
 class FloatingNavbar extends StatefulWidget {
-  final VoidCallback onHeroTap;
-  final VoidCallback onMetricsTap;
-  final VoidCallback onSkillsTap;
-  final VoidCallback onExperienceTap;
-  final VoidCallback onProjectsTap;
-  final VoidCallback onCertificationsTap;
-  final VoidCallback onContactTap;
+  final ValueListenable<NavSection> activeSection;
+  final ValueChanged<NavSection> onNavigate;
 
   const FloatingNavbar({
     super.key,
-    required this.onHeroTap,
-    required this.onMetricsTap,
-    required this.onSkillsTap,
-    required this.onExperienceTap,
-    required this.onProjectsTap,
-    required this.onCertificationsTap,
-    required this.onContactTap,
+    required this.activeSection,
+    required this.onNavigate,
   });
 
   @override
@@ -70,7 +74,7 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
                   children: [
                     // Logo Name
                     InkWell(
-                      onTap: widget.onHeroTap,
+                      onTap: () => widget.onNavigate(NavSection.hero),
                       borderRadius: BorderRadius.circular(8),
                       child: Padding(
                         padding: const EdgeInsets.all(4.0),
@@ -86,9 +90,9 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
                                 style: TextStyle(color: theme.primaryColor),
                               ),
                               TextSpan(
-                                text: isDark ? "ARESH" : "ARESH",
+                                text: "ARESH",
                                 style: TextStyle(
-                                  color: isDark ? Colors.white : Colors.black87,
+                                  color: context.palette.textPrimary,
                                 ),
                               ),
                             ],
@@ -99,38 +103,12 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
 
                     // Desktop Nav Items
                     if (!isMobile)
-                      Row(
-                        children: [
-                          HoverNavLink(
-                            text: "Impact",
-                            onTap: widget.onMetricsTap,
-                          ),
-                          const SizedBox(width: 8),
-                          HoverNavLink(
-                            text: "Skills",
-                            onTap: widget.onSkillsTap,
-                          ),
-                          const SizedBox(width: 8),
-                          HoverNavLink(
-                            text: "Experience",
-                            onTap: widget.onExperienceTap,
-                          ),
-                          const SizedBox(width: 8),
-                          HoverNavLink(
-                            text: "Projects",
-                            onTap: widget.onProjectsTap,
-                          ),
-                          const SizedBox(width: 8),
-                          HoverNavLink(
-                            text: "Certifications",
-                            onTap: widget.onCertificationsTap,
-                          ),
-                          const SizedBox(width: 8),
-                          HoverNavLink(
-                            text: "Contact",
-                            onTap: widget.onContactTap,
-                          ),
-                        ],
+                      ValueListenableBuilder<NavSection>(
+                        valueListenable: widget.activeSection,
+                        builder: (context, active, _) => _NavLinks(
+                          active: active,
+                          onTap: widget.onNavigate,
+                        ),
                       ),
 
                     // Right Switch & Menu Toggle
@@ -168,7 +146,7 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
                             },
                             icon: Icon(
                               _isMenuOpen ? Icons.close : Icons.menu,
-                              color: isDark ? Colors.white : Colors.black87,
+                              color: context.palette.textPrimary,
                             ),
                           ),
                       ],
@@ -178,36 +156,23 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
 
                 // Mobile Expanded Menu
                 if (isMobile && _isMenuOpen)
-                  AnimatedContainer(
-                    duration: const Duration(milliseconds: 300),
+                  Padding(
                     padding: const EdgeInsets.only(top: 12),
-                    child: Column(
-                      children: [
-                        _buildMobileNavLink("Impact", () {
-                          widget.onMetricsTap();
-                          setState(() => _isMenuOpen = false);
-                        }),
-                        _buildMobileNavLink("Skills", () {
-                          widget.onSkillsTap();
-                          setState(() => _isMenuOpen = false);
-                        }),
-                        _buildMobileNavLink("Experience", () {
-                          widget.onExperienceTap();
-                          setState(() => _isMenuOpen = false);
-                        }),
-                        _buildMobileNavLink("Projects", () {
-                          widget.onProjectsTap();
-                          setState(() => _isMenuOpen = false);
-                        }),
-                        _buildMobileNavLink("Certifications", () {
-                          widget.onCertificationsTap();
-                          setState(() => _isMenuOpen = false);
-                        }),
-                        _buildMobileNavLink("Contact", () {
-                          widget.onContactTap();
-                          setState(() => _isMenuOpen = false);
-                        }),
-                      ],
+                    child: ValueListenableBuilder<NavSection>(
+                      valueListenable: widget.activeSection,
+                      builder: (context, active, _) => Column(
+                        children: [
+                          for (final entry in _navLabels.entries)
+                            _buildMobileNavLink(
+                              entry.value,
+                              isActive: entry.key == active,
+                              onTap: () {
+                                widget.onNavigate(entry.key);
+                                setState(() => _isMenuOpen = false);
+                              },
+                            ),
+                        ],
+                      ),
                     ),
                   ),
               ],
@@ -218,26 +183,35 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
     );
   }
 
-  // Helper methods removed, replaced by HoverNavLink below
-
-  Widget _buildMobileNavLink(String text, VoidCallback onTap) {
+  Widget _buildMobileNavLink(
+    String text, {
+    required bool isActive,
+    required VoidCallback onTap,
+  }) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.symmetric(vertical: 4),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2),
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 16),
+        borderRadius: BorderRadius.circular(12),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 250),
+          curve: Curves.easeOutCubic,
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+          decoration: BoxDecoration(
+            color: isActive
+                ? theme.primaryColor.withValues(alpha: 0.12)
+                : Colors.transparent,
+            borderRadius: BorderRadius.circular(12),
+          ),
           child: Text(
             text,
             textAlign: TextAlign.center,
             style: theme.textTheme.titleMedium?.copyWith(
-              color: isDark ? Colors.white70 : Colors.black87,
-              fontWeight: FontWeight.w500,
+              color: isActive ? theme.primaryColor : context.palette.textSecondary,
+              fontWeight: isActive ? FontWeight.w700 : FontWeight.w500,
             ),
           ),
         ),
@@ -302,11 +276,98 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
   }
 }
 
+/// Desktop links with a single highlight pill that slides between them as the
+/// active section changes, rather than each link toggling its own background.
+class _NavLinks extends StatefulWidget {
+  final NavSection active;
+  final ValueChanged<NavSection> onTap;
+
+  const _NavLinks({required this.active, required this.onTap});
+
+  @override
+  State<_NavLinks> createState() => _NavLinksState();
+}
+
+class _NavLinksState extends State<_NavLinks> {
+  static const Duration _slide = Duration(milliseconds: 350);
+
+  final GlobalKey _stackKey = GlobalKey();
+  final Map<NavSection, GlobalKey> _linkKeys = {
+    for (final section in _navLabels.keys) section: GlobalKey(),
+  };
+  // Last measured pill rect; kept while hidden so it fades out in place.
+  Rect? _pill;
+
+  // Link widths depend on font metrics and window size, so measure after layout.
+  void _measure() {
+    if (!mounted) return;
+    final key = _linkKeys[widget.active];
+    final stack = _stackKey.currentContext?.findRenderObject() as RenderBox?;
+    final link = key?.currentContext?.findRenderObject() as RenderBox?;
+    if (stack == null || link == null || !stack.hasSize || !link.hasSize) return;
+    final rect = link.localToGlobal(Offset.zero, ancestor: stack) & link.size;
+    if (rect != _pill) setState(() => _pill = rect);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    WidgetsBinding.instance.addPostFrameCallback((_) => _measure());
+    final theme = Theme.of(context);
+    final pill = _pill;
+    final hasActiveLink = _navLabels.containsKey(widget.active);
+
+    return Stack(
+      key: _stackKey,
+      children: [
+        if (pill != null)
+          AnimatedPositioned(
+            duration: _slide,
+            curve: Curves.easeOutCubic,
+            left: pill.left,
+            top: pill.top,
+            width: pill.width,
+            height: pill.height,
+            child: AnimatedOpacity(
+              duration: _slide,
+              curve: Curves.easeOutCubic,
+              opacity: hasActiveLink ? 1 : 0,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: theme.primaryColor.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+            ),
+          ),
+        Row(
+          children: [
+            for (final entry in _navLabels.entries) ...[
+              if (entry.key != NavSection.impact) const SizedBox(width: 8),
+              HoverNavLink(
+                key: _linkKeys[entry.key],
+                text: entry.value,
+                isActive: entry.key == widget.active,
+                onTap: () => widget.onTap(entry.key),
+              ),
+            ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
 class HoverNavLink extends StatefulWidget {
   final String text;
+  final bool isActive;
   final VoidCallback onTap;
 
-  const HoverNavLink({super.key, required this.text, required this.onTap});
+  const HoverNavLink({
+    super.key,
+    required this.text,
+    required this.onTap,
+    this.isActive = false,
+  });
 
   @override
   State<HoverNavLink> createState() => _HoverNavLinkState();
@@ -318,7 +379,7 @@ class _HoverNavLinkState extends State<HoverNavLink> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final highlighted = widget.isActive || _isHovered;
 
     return MouseRegion(
       onEnter: (_) => setState(() => _isHovered = true),
@@ -330,17 +391,17 @@ class _HoverNavLinkState extends State<HoverNavLink> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           decoration: BoxDecoration(
-            color: _isHovered
-                ? theme.primaryColor.withValues(alpha: 0.12)
+            // The active pill is drawn by _NavLinks; hover only adds a faint wash.
+            color: _isHovered && !widget.isActive
+                ? theme.primaryColor.withValues(alpha: 0.06)
                 : Colors.transparent,
             borderRadius: BorderRadius.circular(20),
           ),
           child: AnimatedDefaultTextStyle(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
             style: TextStyle(
-              color: _isHovered
-                  ? theme.primaryColor
-                  : (isDark ? Colors.white70 : Colors.black87),
+              color: highlighted ? theme.primaryColor : context.palette.textSecondary,
               fontWeight: FontWeight.bold,
               fontSize: 14,
               fontFamily: theme.textTheme.bodyMedium?.fontFamily,

@@ -25,55 +25,101 @@ class PortfolioScreen extends StatefulWidget {
 class _PortfolioScreenState extends State<PortfolioScreen> {
   final ScrollController _scrollController = ScrollController();
 
-  // Keys for section scrolling
-  final GlobalKey _heroKey = GlobalKey();
-  final GlobalKey _metricsKey = GlobalKey();
-  final GlobalKey _skillsKey = GlobalKey();
-  final GlobalKey _experienceKey = GlobalKey();
-  final GlobalKey _projectsKey = GlobalKey();
-  final GlobalKey _certificationsKey = GlobalKey();
-  final GlobalKey _contactKey = GlobalKey();
+  // Keys for section scrolling and scroll-spy, in page order.
+  final Map<NavSection, GlobalKey> _sectionKeys = {
+    for (final section in NavSection.values) section: GlobalKey(),
+  };
   final GlobalKey _navbarKey = GlobalKey();
+  final ValueNotifier<NavSection> _activeSection = ValueNotifier(
+    NavSection.hero,
+  );
+  // True while a nav tap animates the scroll, so the highlight goes straight to the
+  // target instead of sweeping through every section in between.
+  bool _isNavigating = false;
 
   bool _isChatOpen = false;
 
-  void _scrollToSection(GlobalKey key) {
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_updateActiveSection);
+  }
+
+  double _navbarBottom() {
+    final navbar = _navbarKey.currentContext?.findRenderObject() as RenderBox?;
+    return navbar == null
+        ? 0.0
+        : navbar.localToGlobal(Offset(0, navbar.size.height)).dy;
+  }
+
+  void _updateActiveSection() {
+    if (_isNavigating || !_scrollController.hasClients) return;
+    final position = _scrollController.position;
+
+    // The last section can't scroll far enough up to reach the probe line.
+    if (position.pixels >= position.maxScrollExtent - 2) {
+      _activeSection.value = NavSection.contact;
+      return;
+    }
+
+    // A section is active once its top passes a line just under the navbar.
+    final probe = _navbarBottom() + 120;
+    var active = NavSection.hero;
+    for (final section in NavSection.values) {
+      final box =
+          _sectionKeys[section]!.currentContext?.findRenderObject()
+              as RenderBox?;
+      if (box == null || !box.attached) continue;
+      if (box.localToGlobal(Offset.zero).dy > probe) break;
+      active = section;
+    }
+    _activeSection.value = active;
+  }
+
+  void _scrollToSection(NavSection section) {
+    _activeSection.value = section;
+    _isNavigating = true;
     // A mobile-menu tap also collapses the menu; measure the navbar after that frame.
-    WidgetsBinding.instance.addPostFrameCallback((_) => _animateToSection(key));
+    WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _animateToSection(section),
+    );
     WidgetsBinding.instance.scheduleFrame();
   }
 
-  void _animateToSection(GlobalKey key) {
-    final target = key.currentContext?.findRenderObject();
-    if (target == null || !_scrollController.hasClients) return;
+  Future<void> _animateToSection(NavSection section) async {
+    final target = _sectionKeys[section]!.currentContext?.findRenderObject();
+    if (target == null || !_scrollController.hasClients) {
+      _isNavigating = false;
+      return;
+    }
     final position = _scrollController.position;
 
     double offset = 0;
-    if (key != _heroKey) {
+    if (section != NavSection.hero) {
       // ensureVisible pins the section to the viewport top, underneath the floating
       // navbar, so land it just below the navbar's bottom edge instead.
-      final navbar =
-          _navbarKey.currentContext?.findRenderObject() as RenderBox?;
-      final navbarBottom = navbar == null
-          ? 0.0
-          : navbar.localToGlobal(Offset(0, navbar.size.height)).dy;
       offset =
           RenderAbstractViewport.of(
             target,
           ).getOffsetToReveal(target, 0).offset -
-          navbarBottom;
+          _navbarBottom();
     }
 
-    _scrollController.animateTo(
+    // Completes when the animation ends or the user interrupts it by scrolling.
+    await _scrollController.animateTo(
       offset.clamp(position.minScrollExtent, position.maxScrollExtent),
       duration: const Duration(milliseconds: 800),
       curve: Curves.easeInOutCubic,
     );
+    _isNavigating = false;
+    if (mounted) _updateActiveSection();
   }
 
   @override
   void dispose() {
+    _scrollController.removeListener(_updateActiveSection);
     _scrollController.dispose();
+    _activeSection.dispose();
     super.dispose();
   }
 
@@ -122,26 +168,28 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                 children: [
                   const SizedBox(height: 100),
                   HeroSection(
-                    key: _heroKey,
-                    onContactClick: () => _scrollToSection(_contactKey),
+                    key: _sectionKeys[NavSection.hero],
+                    onContactClick: () => _scrollToSection(NavSection.contact),
                   ),
                   _buildDivider(),
-                  ImpactMetricsSection(key: _metricsKey),
+                  ImpactMetricsSection(key: _sectionKeys[NavSection.impact]),
                   ExploringSection(),
                   _buildDivider(),
-                  SkillsSection(key: _skillsKey),
+                  SkillsSection(key: _sectionKeys[NavSection.skills]),
                   _buildDivider(),
-                  ExperienceSection(key: _experienceKey),
+                  ExperienceSection(key: _sectionKeys[NavSection.experience]),
                   _buildDivider(),
-                  ProjectsSection(key: _projectsKey),
+                  ProjectsSection(key: _sectionKeys[NavSection.projects]),
                   _buildDivider(),
                   const EducationSection(),
                   _buildDivider(),
-                  CertificationsSection(key: _certificationsKey),
+                  CertificationsSection(
+                    key: _sectionKeys[NavSection.certifications],
+                  ),
                   _buildDivider(),
                   const SelfPortraitSection(),
                   _buildDivider(),
-                  ContactSection(key: _contactKey),
+                  ContactSection(key: _sectionKeys[NavSection.contact]),
                   const SizedBox(height: 80),
                 ],
               ),
@@ -154,13 +202,8 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             right: 0,
             child: FloatingNavbar(
               key: _navbarKey,
-              onHeroTap: () => _scrollToSection(_heroKey),
-              onMetricsTap: () => _scrollToSection(_metricsKey),
-              onSkillsTap: () => _scrollToSection(_skillsKey),
-              onExperienceTap: () => _scrollToSection(_experienceKey),
-              onProjectsTap: () => _scrollToSection(_projectsKey),
-              onCertificationsTap: () => _scrollToSection(_certificationsKey),
-              onContactTap: () => _scrollToSection(_contactKey),
+              activeSection: _activeSection,
+              onNavigate: _scrollToSection,
             ),
           ),
 
