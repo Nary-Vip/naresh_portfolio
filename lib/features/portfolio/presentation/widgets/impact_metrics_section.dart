@@ -200,6 +200,10 @@ class _HoverMetricCardState extends State<HoverMetricCard> {
         return Icons.work_outline;
       case 'layers_outlined':
         return Icons.layers_outlined;
+      case 'security_outlined':
+        return Icons.security_outlined;
+      case 'verified_outlined':
+        return Icons.verified_outlined;
       case 'rocket_launch_outlined':
         return Icons.rocket_launch_outlined;
       case 'speed_outlined':

@@ -235,7 +235,7 @@ class _ContactSectionState extends State<ContactSection> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "Let's Create Something Great Together",
+          "Have a mobile engineering problem worth solving?",
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.bold,
             fontSize: 28,
@@ -244,7 +244,7 @@ class _ContactSectionState extends State<ContactSection> {
         ),
         const SizedBox(height: 16),
         Text(
-          "I'm open to full-time roles, strategic consulting, and mobile engineering partnerships. Drop me an email or click any handle to chat directly.",
+          "Email works best, or pick a handle below — I read everything and reply myself.",
           style: theme.textTheme.bodyLarge?.copyWith(height: 1.6),
         ),
         const SizedBox(height: 32),
@@ -284,6 +284,15 @@ class _ContactSectionState extends State<ContactSection> {
           "LinkedIn",
           "Naresh Kumar",
           nareshPortfolioData.linkedinUrl,
+        ),
+        const SizedBox(height: 20),
+        _buildContactItem(
+          theme,
+          isDark,
+          Icons.leaderboard_outlined,
+          "LeetCode",
+          "rmnareshkumar001",
+          nareshPortfolioData.leetcodeUrl,
         ),
       ],
     );

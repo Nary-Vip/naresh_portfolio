@@ -263,6 +263,7 @@ NARESH'S PORTFOLIO DATA (Website Content):
 - Phone: ${nareshPortfolioData.phone}
 - GitHub: ${nareshPortfolioData.githubUrl}
 - LinkedIn: ${nareshPortfolioData.linkedinUrl}
+- LeetCode: ${nareshPortfolioData.leetcodeUrl}
 - Summary: ${nareshPortfolioData.summary}
 
 Education:

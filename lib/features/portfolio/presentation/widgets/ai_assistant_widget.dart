@@ -25,7 +25,7 @@ class _AiAssistantWidgetState extends State<AiAssistantWidget> {
     _messages.add(
       const ChatMessage(
         text:
-            "Hi! I am NaryAI. Ask me anything about my master, projects, skills, or career history!",
+            "Hi, I'm NaryAI. Ask me about Naresh's experience, projects, or skills — I know his resume inside out.",
         isUser: false,
       ),
     );

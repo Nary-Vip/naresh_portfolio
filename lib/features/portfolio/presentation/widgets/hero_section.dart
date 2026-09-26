@@ -71,26 +71,34 @@ class _HeroSectionState extends State<HeroSection> {
       crossAxisAlignment: alignment,
       mainAxisSize: MainAxisSize.min,
       children: [
-        // Welcome tag
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
-          decoration: BoxDecoration(
-            color: theme.primaryColor.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(
-              color: theme.primaryColor.withValues(alpha: 0.2),
+        // Role + current company — a factual detail, not a greeting badge
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              margin: const EdgeInsets.only(right: 10),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: theme.primaryColor,
+              ),
             ),
-          ),
-          child: Text(
-            "Hello, World! I am",
-            style: TextStyle(
-              color: theme.primaryColor,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
+            Flexible(
+              child: Text(
+                "${nareshPortfolioData.title} at ${nareshPortfolioData.experiences.first.company}",
+                textAlign: textAlignment,
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.black54,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                  letterSpacing: 0.2,
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-        const SizedBox(height: 16),
+        const SizedBox(height: 20),
         // Name
         Text(
           nareshPortfolioData.name,
@@ -213,6 +221,13 @@ class _HeroSectionState extends State<HeroSection> {
           Icons.code,
           "GitHub",
           nareshPortfolioData.githubUrl,
+        ),
+        _buildSocialIcon(
+          theme,
+          isDark,
+          Icons.leaderboard_outlined,
+          "LeetCode",
+          nareshPortfolioData.leetcodeUrl,
         ),
       ],
     );
