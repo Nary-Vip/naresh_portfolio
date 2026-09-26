@@ -1,15 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'core/theme/app_theme.dart';
 import 'core/theme/theme_provider.dart';
-import 'core/theme/theme_reveal.dart';
 import 'features/portfolio/presentation/portfolio_screen.dart';
 
-Future<void> main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(fileName: ".env");
-  runApp(const MyApp());
-}
+void main() => runApp(const MyApp());
 
 class AppScope extends InheritedNotifier<ThemeProvider> {
   const AppScope({
@@ -50,17 +44,17 @@ class _MyAppState extends State<MyApp> {
         listenable: _themeProvider,
         builder: (context, _) {
           return MaterialApp(
-            title: 'Naresh Kumar - SDE Portfolio',
+            // Must match <title> in web/index.html, or the tab title changes on boot.
+            title: 'R M Naresh Kumar — Software Development Engineer',
             debugShowCheckedModeBanner: false,
             theme: AppTheme.lightTheme,
             darkTheme: AppTheme.darkTheme,
             themeMode: _themeProvider.themeMode,
-            home: CircularThemeReveal(
-              isDark: _themeProvider.isDark,
-              togglePosition: _themeProvider.togglePosition,
-              onTransitionComplete: _themeProvider.endTransition,
-              child: const PortfolioScreen(),
-            ),
+            // The only theme animation: a second AnimatedTheme under `home` used to
+            // lerp ThemeData and rebuild the whole page on top of MaterialApp's own.
+            themeAnimationDuration: ThemeProvider.transitionDuration,
+            themeAnimationCurve: Curves.easeInOutCubic,
+            home: const PortfolioScreen(),
           );
         },
       ),

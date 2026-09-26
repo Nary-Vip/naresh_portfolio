@@ -1,15 +1,15 @@
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-
 const String _web3FormsPlaceholderKey = 'YOUR_ACCESS_KEY_HERE';
 
-String get web3FormsAccessKey =>
-    dotenv.env['WEB3FORMS_ACCESS_KEY'] ?? _web3FormsPlaceholderKey;
+// Compiled in via `--dart-define-from-file=.env`. A runtime-loaded .env asset never
+// reached production (Firebase skips dotfiles) and cost a fetch before first paint.
+const String web3FormsAccessKey = String.fromEnvironment(
+  'WEB3FORMS_ACCESS_KEY',
+  defaultValue: _web3FormsPlaceholderKey,
+);
 
-
-bool get isWeb3FormsConfigured {
-  final key = dotenv.env['WEB3FORMS_ACCESS_KEY'];
-  return key != null && key.isNotEmpty && key != _web3FormsPlaceholderKey;
-}
+bool get isWeb3FormsConfigured =>
+    web3FormsAccessKey.isNotEmpty &&
+    web3FormsAccessKey != _web3FormsPlaceholderKey;
 
 class ImpactMetric {
   final String value;

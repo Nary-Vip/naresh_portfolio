@@ -51,7 +51,11 @@ class AppTheme {
   static const Color darkText = Color(0xFFF8FAFC); // Slate-50
   static const Color darkTextMuted = Color(0xFF94A3B8); // Slate-400
 
-  static ThemeData get lightTheme {
+  // Built once; getters allocated a fresh ThemeData on every MaterialApp rebuild.
+  static final ThemeData lightTheme = _buildLightTheme();
+  static final ThemeData darkTheme = _buildDarkTheme();
+
+  static ThemeData _buildLightTheme() {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
@@ -76,7 +80,7 @@ class AppTheme {
     );
   }
 
-  static ThemeData get darkTheme {
+  static ThemeData _buildDarkTheme() {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,

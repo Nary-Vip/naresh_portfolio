@@ -27,22 +27,7 @@ class FloatingNavbar extends StatefulWidget {
 }
 
 class _FloatingNavbarState extends State<FloatingNavbar> {
-  final GlobalKey _toggleKey = GlobalKey();
   bool _isMenuOpen = false;
-
-  void _toggleTheme(BuildContext context) {
-    final renderBox =
-        _toggleKey.currentContext?.findRenderObject() as RenderBox?;
-    if (renderBox != null) {
-      final size = renderBox.size;
-      final position = renderBox.localToGlobal(
-        Offset(size.width / 2, size.height / 2),
-      );
-      AppScope.of(context).toggleTheme(position: position);
-    } else {
-      AppScope.of(context).toggleTheme();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,8 +138,7 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
                       children: [
                         // Theme Switcher Button
                         IconButton(
-                          key: _toggleKey,
-                          onPressed: () => _toggleTheme(context),
+                          onPressed: () => AppScope.of(context).toggleTheme(),
                           icon: AnimatedSwitcher(
                             duration: const Duration(milliseconds: 400),
                             transitionBuilder: (child, animation) {

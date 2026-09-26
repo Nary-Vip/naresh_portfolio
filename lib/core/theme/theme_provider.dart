@@ -1,34 +1,28 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 class ThemeProvider extends ChangeNotifier {
+  static const Duration transitionDuration = Duration(milliseconds: 600);
+
   ThemeMode _themeMode = ThemeMode.dark; // Default to dark pitch theme
-  Offset? _togglePosition;
-  bool _isTransitioning = false;
+  Timer? _transitionLock;
 
   ThemeMode get themeMode => _themeMode;
   bool get isDark => _themeMode == ThemeMode.dark;
-  Offset? get togglePosition => _togglePosition;
-  bool get isTransitioning => _isTransitioning;
 
-  void toggleTheme({Offset? position}) {
-    if (_isTransitioning) return; // Lock during transition
+  void toggleTheme() {
+    // Ignore taps mid-transition so the animation isn't restarted halfway.
+    if (_transitionLock?.isActive ?? false) return;
+    _transitionLock = Timer(transitionDuration, () {});
 
-    _togglePosition = position;
-    _isTransitioning = true;
-    notifyListeners();
-
-    // Toggle the actual theme mode
-    _themeMode = _themeMode == ThemeMode.dark
-        ? ThemeMode.light
-        : ThemeMode.dark;
-
-    // We let the UI animation know that the theme state has updated.
+    _themeMode = isDark ? ThemeMode.light : ThemeMode.dark;
     notifyListeners();
   }
 
-  void endTransition() {
-    _isTransitioning = false;
-    _togglePosition = null;
-    notifyListeners();
+  @override
+  void dispose() {
+    _transitionLock?.cancel();
+    super.dispose();
   }
 }
