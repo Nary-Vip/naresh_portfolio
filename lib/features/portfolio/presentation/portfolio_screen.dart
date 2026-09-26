@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import '../../../core/utils/ambient_clock.dart';
 import 'widgets/navbar.dart';
 import 'widgets/hero_section.dart';
@@ -32,18 +33,42 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   final GlobalKey _projectsKey = GlobalKey();
   final GlobalKey _certificationsKey = GlobalKey();
   final GlobalKey _contactKey = GlobalKey();
+  final GlobalKey _navbarKey = GlobalKey();
 
   bool _isChatOpen = false;
 
   void _scrollToSection(GlobalKey key) {
-    final context = key.currentContext;
-    if (context != null) {
-      Scrollable.ensureVisible(
-        context,
-        duration: const Duration(milliseconds: 800),
-        curve: Curves.easeInOutCubic,
-      );
+    // A mobile-menu tap also collapses the menu; measure the navbar after that frame.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _animateToSection(key));
+    WidgetsBinding.instance.scheduleFrame();
+  }
+
+  void _animateToSection(GlobalKey key) {
+    final target = key.currentContext?.findRenderObject();
+    if (target == null || !_scrollController.hasClients) return;
+    final position = _scrollController.position;
+
+    double offset = 0;
+    if (key != _heroKey) {
+      // ensureVisible pins the section to the viewport top, underneath the floating
+      // navbar, so land it just below the navbar's bottom edge instead.
+      final navbar =
+          _navbarKey.currentContext?.findRenderObject() as RenderBox?;
+      final navbarBottom = navbar == null
+          ? 0.0
+          : navbar.localToGlobal(Offset(0, navbar.size.height)).dy;
+      offset =
+          RenderAbstractViewport.of(
+            target,
+          ).getOffsetToReveal(target, 0).offset -
+          navbarBottom;
     }
+
+    _scrollController.animateTo(
+      offset.clamp(position.minScrollExtent, position.maxScrollExtent),
+      duration: const Duration(milliseconds: 800),
+      curve: Curves.easeInOutCubic,
+    );
   }
 
   @override
@@ -63,9 +88,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           Positioned.fill(
             child: Container(color: theme.scaffoldBackgroundColor),
           ),
-          Positioned.fill(
-            child: ThemeBackgroundWidget(isDark: isDark),
-          ),
+          Positioned.fill(child: ThemeBackgroundWidget(isDark: isDark)),
           if (isDark) ...[
             Positioned(
               top: -100,
@@ -130,6 +153,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
             left: 0,
             right: 0,
             child: FloatingNavbar(
+              key: _navbarKey,
               onHeroTap: () => _scrollToSection(_heroKey),
               onMetricsTap: () => _scrollToSection(_metricsKey),
               onSkillsTap: () => _scrollToSection(_skillsKey),
@@ -383,8 +407,20 @@ class _CelestialPainter extends CustomPainter {
 
   void _paintMoon(Canvas canvas, Size size) {
     final Offset center = Offset(size.width - 130, 150);
-    _softCircle(canvas, center, 65, _blurSigma(50), Colors.indigo.withValues(alpha: 0.25));
-    _softCircle(canvas, center, 58, _blurSigma(30), Colors.white.withValues(alpha: 0.1));
+    _softCircle(
+      canvas,
+      center,
+      65,
+      _blurSigma(50),
+      Colors.indigo.withValues(alpha: 0.25),
+    );
+    _softCircle(
+      canvas,
+      center,
+      58,
+      _blurSigma(30),
+      Colors.white.withValues(alpha: 0.1),
+    );
     _iconPainter(
       Icons.nightlight_round,
       70,
@@ -396,7 +432,13 @@ class _CelestialPainter extends CustomPainter {
     final Offset center = Offset(size.width - 135, 135);
     const double radius = 75;
 
-    _softCircle(canvas, center, radius + 30, _blurSigma(80), Colors.orange.withValues(alpha: 0.15));
+    _softCircle(
+      canvas,
+      center,
+      radius + 30,
+      _blurSigma(80),
+      Colors.orange.withValues(alpha: 0.15),
+    );
 
     canvas.drawCircle(
       center,
@@ -414,6 +456,6 @@ class _CelestialPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_CelestialPainter oldDelegate) => oldDelegate.isDark != isDark;
+  bool shouldRepaint(_CelestialPainter oldDelegate) =>
+      oldDelegate.isDark != isDark;
 }
-
