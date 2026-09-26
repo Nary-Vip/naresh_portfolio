@@ -19,16 +19,13 @@ flutter build web               # production build -> build/web
 firebase deploy --only hosting:site_alias   # deploy build/web (project "narychats", site naresh-portfolio-sde)
 ```
 
-Note: `main.dart` sets `showPerformanceOverlay: true`, so the FPS overlay renders in every run — remove it before a real release if it is undesired.
-
 ## Environment
 
 Secrets live in `.env` (bundled as a Flutter asset via `pubspec.yaml`, **not** a server-side secret — it ships in the web build):
 
-- `GEMINI_API_KEY` — Google AI Studio key for the chatbot
-- `WEB3FORMS_ACCESS_KEY` — Web3Forms key for the contact form
+- `WEB3FORMS_ACCESS_KEY` — Web3Forms key for the contact form, read lazily via getters in `lib/core/utils/portfolio_data.dart` (missing key → placeholder).
 
-Both are read lazily through getters in `lib/core/utils/portfolio_data.dart`; missing keys degrade gracefully (chatbot returns null → local fallback, form uses a placeholder key).
+The chatbot needs no client key: it calls a Cloudflare Worker proxy (`naresh-gemini-proxy.nary-vip.workers.dev`) that holds the Gemini key.
 
 ## Architecture
 
@@ -50,9 +47,6 @@ No external state library. State flows through:
 
 ### Chatbot (Gemini)
 
-`GeminiService` is static/stateless. On each request it:
-1. Extracts text from the bundled `resume.pdf` via `syncfusion_flutter_pdf` (cached in `_cachedResumeText`).
-2. Builds a system prompt from `nareshPortfolioData` + resume text in `_buildSystemContext`.
-3. Calls `gemini-2.5-flash-lite` — `getChatResponse` (single-shot) or `getChatResponseStream` (SSE streaming). OpenAI-style `user`/`assistant` roles are mapped to Gemini `user`/`model`.
+`GeminiService` is static/stateless. The system prompt is built once from `nareshPortfolioData` (`_buildSystemContext`), then each request goes to the proxy — `getChatResponse` (single-shot) or `getChatResponseStream` (SSE streaming). OpenAI-style `user`/`assistant` roles are mapped to Gemini `user`/`model`.
 
-When editing portfolio content, remember it feeds both the rendered UI **and** the chatbot's system context.
+When editing portfolio content, remember it feeds both the rendered UI **and** the chatbot's system context. The downloadable resume is `web/resume.pdf` (served at `/resume.pdf` by the "View Resume" button) — replace it whenever the resume changes.

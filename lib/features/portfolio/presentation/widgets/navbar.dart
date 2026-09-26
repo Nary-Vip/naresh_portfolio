@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import '../../../../core/utils/responsive.dart';
 import '../../../../main.dart';
@@ -69,168 +68,165 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
             ),
           ],
         ),
+        // No BackdropFilter: the page behind is always animating, so the blur was
+        // recomputed every frame. A denser fill keeps the bar just as legible.
         child: ClipRRect(
           borderRadius: BorderRadius.circular(30),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              color: isDark
-                  ? Colors.black.withValues(alpha: 0.6)
-                  : Colors.white.withValues(alpha: 0.7),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      // Logo Name
-                      InkWell(
-                        onTap: widget.onHeroTap,
-                        borderRadius: BorderRadius.circular(8),
-                        child: Padding(
-                          padding: const EdgeInsets.all(4.0),
-                          child: RichText(
-                            text: TextSpan(
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
-                                letterSpacing: 1.0,
-                              ),
-                              children: [
-                                TextSpan(
-                                  text: "N",
-                                  style: TextStyle(color: theme.primaryColor),
-                                ),
-                                TextSpan(
-                                  text: isDark ? "ARESH" : "ARESH",
-                                  style: TextStyle(
-                                    color: isDark
-                                        ? Colors.white
-                                        : Colors.black87,
-                                  ),
-                                ),
-                              ],
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            color: isDark
+                ? Colors.black.withValues(alpha: 0.85)
+                : Colors.white.withValues(alpha: 0.9),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    // Logo Name
+                    InkWell(
+                      onTap: widget.onHeroTap,
+                      borderRadius: BorderRadius.circular(8),
+                      child: Padding(
+                        padding: const EdgeInsets.all(4.0),
+                        child: RichText(
+                          text: TextSpan(
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 1.0,
                             ),
+                            children: [
+                              TextSpan(
+                                text: "N",
+                                style: TextStyle(color: theme.primaryColor),
+                              ),
+                              TextSpan(
+                                text: isDark ? "ARESH" : "ARESH",
+                                style: TextStyle(
+                                  color: isDark ? Colors.white : Colors.black87,
+                                ),
+                              ),
+                            ],
                           ),
                         ),
-                      ),
-
-                      // Desktop Nav Items
-                      if (!isMobile)
-                        Row(
-                          children: [
-                            HoverNavLink(
-                              text: "Impact",
-                              onTap: widget.onMetricsTap,
-                            ),
-                            const SizedBox(width: 8),
-                            HoverNavLink(
-                              text: "Skills",
-                              onTap: widget.onSkillsTap,
-                            ),
-                            const SizedBox(width: 8),
-                            HoverNavLink(
-                              text: "Experience",
-                              onTap: widget.onExperienceTap,
-                            ),
-                            const SizedBox(width: 8),
-                            HoverNavLink(
-                              text: "Projects",
-                              onTap: widget.onProjectsTap,
-                            ),
-                            const SizedBox(width: 8),
-                            HoverNavLink(
-                              text: "Certifications",
-                              onTap: widget.onCertificationsTap,
-                            ),
-                            const SizedBox(width: 8),
-                            HoverNavLink(
-                              text: "Contact",
-                              onTap: widget.onContactTap,
-                            ),
-                          ],
-                        ),
-
-                      // Right Switch & Menu Toggle
-                      Row(
-                        children: [
-                          // Theme Switcher Button
-                          IconButton(
-                            key: _toggleKey,
-                            onPressed: () => _toggleTheme(context),
-                            icon: AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 400),
-                              transitionBuilder: (child, animation) {
-                                return RotationTransition(
-                                  turns: animation,
-                                  child: FadeTransition(
-                                    opacity: animation,
-                                    child: ScaleTransition(
-                                      scale: animation,
-                                      child: child,
-                                    ),
-                                  ),
-                                );
-                              },
-                              child: _buildThemeIcon(isDark, theme),
-                            ),
-                            tooltip: "Toggle Theme",
-                          ),
-
-                          // Mobile Menu Button
-                          if (isMobile)
-                            IconButton(
-                              onPressed: () {
-                                setState(() {
-                                  _isMenuOpen = !_isMenuOpen;
-                                });
-                              },
-                              icon: Icon(
-                                _isMenuOpen ? Icons.close : Icons.menu,
-                                color: isDark ? Colors.white : Colors.black87,
-                              ),
-                            ),
-                        ],
-                      ),
-                    ],
-                  ),
-
-                  // Mobile Expanded Menu
-                  if (isMobile && _isMenuOpen)
-                    AnimatedContainer(
-                      duration: const Duration(milliseconds: 300),
-                      padding: const EdgeInsets.only(top: 12),
-                      child: Column(
-                        children: [
-                          _buildMobileNavLink("Impact", () {
-                            widget.onMetricsTap();
-                            setState(() => _isMenuOpen = false);
-                          }),
-                          _buildMobileNavLink("Skills", () {
-                            widget.onSkillsTap();
-                            setState(() => _isMenuOpen = false);
-                          }),
-                          _buildMobileNavLink("Experience", () {
-                            widget.onExperienceTap();
-                            setState(() => _isMenuOpen = false);
-                          }),
-                          _buildMobileNavLink("Projects", () {
-                            widget.onProjectsTap();
-                            setState(() => _isMenuOpen = false);
-                          }),
-                          _buildMobileNavLink("Certifications", () {
-                            widget.onCertificationsTap();
-                            setState(() => _isMenuOpen = false);
-                          }),
-                          _buildMobileNavLink("Contact", () {
-                            widget.onContactTap();
-                            setState(() => _isMenuOpen = false);
-                          }),
-                        ],
                       ),
                     ),
-                ],
-              ),
+
+                    // Desktop Nav Items
+                    if (!isMobile)
+                      Row(
+                        children: [
+                          HoverNavLink(
+                            text: "Impact",
+                            onTap: widget.onMetricsTap,
+                          ),
+                          const SizedBox(width: 8),
+                          HoverNavLink(
+                            text: "Skills",
+                            onTap: widget.onSkillsTap,
+                          ),
+                          const SizedBox(width: 8),
+                          HoverNavLink(
+                            text: "Experience",
+                            onTap: widget.onExperienceTap,
+                          ),
+                          const SizedBox(width: 8),
+                          HoverNavLink(
+                            text: "Projects",
+                            onTap: widget.onProjectsTap,
+                          ),
+                          const SizedBox(width: 8),
+                          HoverNavLink(
+                            text: "Certifications",
+                            onTap: widget.onCertificationsTap,
+                          ),
+                          const SizedBox(width: 8),
+                          HoverNavLink(
+                            text: "Contact",
+                            onTap: widget.onContactTap,
+                          ),
+                        ],
+                      ),
+
+                    // Right Switch & Menu Toggle
+                    Row(
+                      children: [
+                        // Theme Switcher Button
+                        IconButton(
+                          key: _toggleKey,
+                          onPressed: () => _toggleTheme(context),
+                          icon: AnimatedSwitcher(
+                            duration: const Duration(milliseconds: 400),
+                            transitionBuilder: (child, animation) {
+                              return RotationTransition(
+                                turns: animation,
+                                child: FadeTransition(
+                                  opacity: animation,
+                                  child: ScaleTransition(
+                                    scale: animation,
+                                    child: child,
+                                  ),
+                                ),
+                              );
+                            },
+                            child: _buildThemeIcon(isDark, theme),
+                          ),
+                          tooltip: "Toggle Theme",
+                        ),
+
+                        // Mobile Menu Button
+                        if (isMobile)
+                          IconButton(
+                            onPressed: () {
+                              setState(() {
+                                _isMenuOpen = !_isMenuOpen;
+                              });
+                            },
+                            icon: Icon(
+                              _isMenuOpen ? Icons.close : Icons.menu,
+                              color: isDark ? Colors.white : Colors.black87,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ],
+                ),
+
+                // Mobile Expanded Menu
+                if (isMobile && _isMenuOpen)
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    padding: const EdgeInsets.only(top: 12),
+                    child: Column(
+                      children: [
+                        _buildMobileNavLink("Impact", () {
+                          widget.onMetricsTap();
+                          setState(() => _isMenuOpen = false);
+                        }),
+                        _buildMobileNavLink("Skills", () {
+                          widget.onSkillsTap();
+                          setState(() => _isMenuOpen = false);
+                        }),
+                        _buildMobileNavLink("Experience", () {
+                          widget.onExperienceTap();
+                          setState(() => _isMenuOpen = false);
+                        }),
+                        _buildMobileNavLink("Projects", () {
+                          widget.onProjectsTap();
+                          setState(() => _isMenuOpen = false);
+                        }),
+                        _buildMobileNavLink("Certifications", () {
+                          widget.onCertificationsTap();
+                          setState(() => _isMenuOpen = false);
+                        }),
+                        _buildMobileNavLink("Contact", () {
+                          widget.onContactTap();
+                          setState(() => _isMenuOpen = false);
+                        }),
+                      ],
+                    ),
+                  ),
+              ],
             ),
           ),
         ),
@@ -271,11 +267,7 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
         key: const ValueKey('dark_theme_icon'),
         clipBehavior: Clip.none,
         children: [
-          Icon(
-            Icons.nights_stay,
-            color: theme.primaryColor,
-            size: 22,
-          ),
+          Icon(Icons.nights_stay, color: theme.primaryColor, size: 22),
           Positioned(
             top: -2,
             right: -2,
@@ -301,11 +293,7 @@ class _FloatingNavbarState extends State<FloatingNavbar> {
         key: const ValueKey('light_theme_icon'),
         clipBehavior: Clip.none,
         children: [
-          Icon(
-            Icons.wb_sunny,
-            color: Colors.orange.shade600,
-            size: 22,
-          ),
+          Icon(Icons.wb_sunny, color: Colors.orange.shade600, size: 22),
           Positioned(
             bottom: -3,
             right: -4,

@@ -5,7 +5,10 @@ import 'package:flutter/widgets.dart';
 class OnScreenBuilder extends StatefulWidget {
   final Widget Function(BuildContext context, bool onScreen) builder;
 
-  const OnScreenBuilder({super.key, required this.builder});
+  /// Called on the first visibility check and on every change after it.
+  final ValueChanged<bool>? onChanged;
+
+  const OnScreenBuilder({super.key, required this.builder, this.onChanged});
 
   @override
   State<OnScreenBuilder> createState() => _OnScreenBuilderState();
@@ -13,7 +16,8 @@ class OnScreenBuilder extends StatefulWidget {
 
 class _OnScreenBuilderState extends State<OnScreenBuilder> {
   ScrollableState? _scrollable;
-  bool _onScreen = true;
+  // Null until first measured, so onChanged also fires when already visible at load.
+  bool? _onScreen;
 
   @override
   void didChangeDependencies() {
@@ -38,7 +42,9 @@ class _OnScreenBuilderState extends State<OnScreenBuilder> {
     final top = box.localToGlobal(Offset.zero, ancestor: viewport).dy;
     final visible = top < scrollable.position.viewportDimension &&
         top + box.size.height > 0;
-    if (visible != _onScreen) setState(() => _onScreen = visible);
+    if (visible == _onScreen) return;
+    setState(() => _onScreen = visible);
+    widget.onChanged?.call(visible);
   }
 
   @override
@@ -48,5 +54,6 @@ class _OnScreenBuilderState extends State<OnScreenBuilder> {
   }
 
   @override
-  Widget build(BuildContext context) => widget.builder(context, _onScreen);
+  Widget build(BuildContext context) =>
+      widget.builder(context, _onScreen ?? true);
 }

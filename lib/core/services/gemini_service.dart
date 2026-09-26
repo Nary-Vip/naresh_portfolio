@@ -1,9 +1,6 @@
 import 'dart:convert';
-import 'dart:typed_data';
 import 'package:flutter/foundation.dart' show debugPrint;
-import 'package:flutter/services.dart' show rootBundle;
 import 'package:http/http.dart' as http;
-import 'package:syncfusion_flutter_pdf/pdf.dart';
 import '../utils/portfolio_data.dart';
 
 class GeminiIncompleteException implements Exception {
@@ -27,29 +24,10 @@ class GeminiService {
 
   static const String _proxyBaseUrl =
       'https://naresh-gemini-proxy.nary-vip.workers.dev';
-  static String? _cachedResumeText;
 
-  /// Loads and extracts text from resume.pdf. Caches the result in memory.
-  static Future<String> _loadResumeFromPdf() async {
-    if (_cachedResumeText != null) {
-      return _cachedResumeText!;
-    }
-    try {
-      final ByteData data = await rootBundle.load('resume.pdf');
-      final List<int> bytes = data.buffer.asUint8List(
-        data.offsetInBytes,
-        data.lengthInBytes,
-      );
-      final PdfDocument document = PdfDocument(inputBytes: bytes);
-      final String text = PdfTextExtractor(document).extractText();
-      document.dispose();
-      _cachedResumeText = text.trim();
-      return _cachedResumeText!;
-    } catch (e) {
-      debugPrint('GeminiService: resume.pdf extraction failed: $e');
-      return '';
-    }
-  }
+  // portfolio_data.dart mirrors the resume, so it's the only context needed.
+  // Built once: the data is const.
+  static final String _systemContext = _buildSystemContext();
 
   static Future<String?> getChatResponse(
     List<Map<String, String>> messages,
@@ -59,11 +37,7 @@ class GeminiService {
     }
 
     try {
-      // Dynamic extraction of resume text
-      final String resumeText = await _loadResumeFromPdf();
-
-      // Build the system context using website data and resume
-      final String systemContext = _buildSystemContext(resumeText);
+      final String systemContext = _systemContext;
 
       // Construct Gemini request body
       // Map OpenAI roles (user/assistant) to Gemini roles (user/model)
@@ -132,8 +106,7 @@ class GeminiService {
       return;
     }
 
-    final String resumeText = await _loadResumeFromPdf();
-    final String systemContext = _buildSystemContext(resumeText);
+    final String systemContext = _systemContext;
 
     final List<Map<String, dynamic>> contents = messages.map((msg) {
       final role = msg['role'] == 'user' ? 'user' : 'model';
@@ -243,10 +216,10 @@ class GeminiService {
   static String _truncate(String body, [int max = 500]) =>
       body.length <= max ? body : '${body.substring(0, max)}…';
 
-  static String _buildSystemContext(String resumeText) {
+  static String _buildSystemContext() {
     return '''
 You are the personal AI Assistant for R M Naresh Kumar, a Software Development Engineer. You represent him.
-Your goal is to answer visitors' questions about Naresh's professional background, skills, work experience, projects, and education based ONLY on his resume and website content provided below.
+Your goal is to answer visitors' questions about Naresh's professional background, skills, work experience, projects, and education based ONLY on his portfolio content provided below.
 
 INSTRUCTIONS:
 1. Act as a friendly, professional, and knowledgeable representative of Naresh.
@@ -283,8 +256,6 @@ ${nareshPortfolioData.projects.map((proj) => "  * ${proj.title} - ${proj.subtitl
 
 Certifications:
 ${nareshPortfolioData.certifications.map((cert) => "  * ${cert.title} by ${cert.organization} (${cert.date})").join('\n')}
-
-${resumeText.isNotEmpty ? '---\nNARESH\'S RESUME (Extracted from resume.pdf):\n$resumeText' : ''}
 ''';
   }
 }

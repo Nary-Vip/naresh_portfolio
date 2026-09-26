@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/on_screen_builder.dart';
 import '../../../../core/utils/portfolio_data.dart';
 import '../../../../core/utils/responsive.dart';
 
@@ -22,7 +23,6 @@ class _ImpactMetricsSectionState extends State<ImpactMetricsSection>
       duration: const Duration(milliseconds: 1800),
     );
     _animation = CurvedAnimation(parent: _controller, curve: Curves.easeOutCubic);
-    _controller.forward();
   }
 
   @override
@@ -38,6 +38,21 @@ class _ImpactMetricsSectionState extends State<ImpactMetricsSection>
     final isDesktop = Responsive.isDesktop(context);
     final isMobile = Responsive.isMobile(context);
 
+    // Start the count-up on first view; it's below the fold, so initState was too early.
+    return OnScreenBuilder(
+      onChanged: (visible) {
+        if (visible) _controller.forward();
+      },
+      builder: (context, _) => _buildContent(theme, isDark, isDesktop, isMobile),
+    );
+  }
+
+  Widget _buildContent(
+    ThemeData theme,
+    bool isDark,
+    bool isDesktop,
+    bool isMobile,
+  ) {
     return Container(
       width: double.infinity,
       alignment: Alignment.center,
