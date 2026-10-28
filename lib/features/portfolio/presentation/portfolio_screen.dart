@@ -1,4 +1,6 @@
 import 'dart:math';
+import 'package:flutter/gestures.dart'
+    show GestureBinding, PointerScrollEvent, PointerSignalEvent;
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart' show RenderAbstractViewport;
 import '../../../core/utils/ambient_clock.dart';
@@ -36,8 +38,46 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
   // True while a nav tap animates the scroll, so the highlight goes straight to the
   // target instead of sweeping through every section in between.
   bool _isNavigating = false;
+  // Where an in-flight eased wheel scroll is heading, so quick notches accumulate.
+  double? _wheelTarget;
 
   bool _isChatOpen = false;
+
+  // Flutter web jumps ~100px per wheel notch with no easing, which reads as steppy
+  // next to native browser scrolling. Claim wheel events first (this Listener is
+  // deeper than the Scrollable, so it registers first) and ease toward the target.
+  void _handlePointerSignal(PointerSignalEvent event) {
+    if (event is! PointerScrollEvent || !_scrollController.hasClients) return;
+    final dy = event.scrollDelta.dy;
+    if (dy == 0) return;
+
+    GestureBinding.instance.pointerSignalResolver.register(event, (_) {
+      final position = _scrollController.position;
+      final min = position.minScrollExtent;
+      final max = position.maxScrollExtent;
+
+      // Trackpads send many small deltas and already feel continuous; follow them 1:1.
+      if (dy.abs() < 50) {
+        _wheelTarget = null;
+        position.jumpTo((position.pixels + dy).clamp(min, max));
+        return;
+      }
+
+      final target = ((_wheelTarget ?? position.pixels) + dy).clamp(min, max);
+      if (target == _wheelTarget) return; // already pinned at an edge
+      _wheelTarget = target;
+      position
+          .animateTo(
+            target,
+            duration: const Duration(milliseconds: 380),
+            curve: Curves.easeOutCubic,
+          )
+          .whenComplete(() {
+            // A newer notch, a drag or a nav jump may have replaced this target.
+            if (_wheelTarget == target) _wheelTarget = null;
+          });
+    });
+  }
 
   @override
   void initState() {
@@ -164,7 +204,9 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
           SelectionArea(
             child: SingleChildScrollView(
               controller: _scrollController,
-              child: Column(
+              child: Listener(
+                onPointerSignal: _handlePointerSignal,
+                child: Column(
                 children: [
                   const SizedBox(height: 100),
                   HeroSection(
@@ -192,6 +234,7 @@ class _PortfolioScreenState extends State<PortfolioScreen> {
                   ContactSection(key: _sectionKeys[NavSection.contact]),
                   const SizedBox(height: 80),
                 ],
+              ),
               ),
             ),
           ),
